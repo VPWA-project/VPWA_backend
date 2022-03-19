@@ -24,6 +24,6 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.post('login', 'UserController.login')
-Route.post('register', 'UserController.register')
-Route.post('logout', 'UserController.logout')
+Route.post('login', 'UsersController.login')
+Route.post('register', 'UsersController.register')
+Route.post('logout', 'UsersController.logout')
