@@ -2,6 +2,12 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
+import { DateTime } from 'luxon'
+
+enum InvitationStatus {
+  Accept = 'ACCEPT',
+  Decline = 'DECLINE',
+}
 
 export default class InvitationsController {
   public async index({}: HttpContextContract) {}
@@ -14,6 +20,8 @@ export default class InvitationsController {
 
     const data = await request.validate({ schema: validationSchema })
     const user = auth.user as User
+
+    // TODO: check if user is already in given channel
 
     // check if invited user was already invited to given channel
     const previousInvitation = await Invitation.query()
@@ -32,6 +40,37 @@ export default class InvitationsController {
     })
 
     return response.created(invitation)
+  }
+
+  public async resolve({ auth, request, response, params: { id } }: HttpContextContract) {
+    const validationSchema = schema.create({
+      status: schema.enum(Object.values(InvitationStatus)),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
+
+    const invitation = await Invitation.findOrFail(id)
+
+    if (!invitation) {
+      return response.badRequest('Invitation not found')
+    }
+
+    const user = auth.user as User
+
+    if (invitation.userId !== user.id) {
+      return response.badRequest('Invitation does not belongs to you')
+    }
+
+    invitation.acceptedAt = DateTime.local()
+
+    await invitation.save()
+
+    if (data.status === InvitationStatus.Accept) {
+      // TODO: add user to channel
+      // TODO: add resolve status to invitation schema or delete after
+    }
+
+    return response.ok(invitation)
   }
 
   public async store({}: HttpContextContract) {}
