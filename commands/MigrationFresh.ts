@@ -38,12 +38,12 @@ export default class MigrationFresh extends BaseCommand {
   public async run() {
     this.logger.info('Recreating database schema...')
 
-    this.db.rawQuery('DROP SCHEMA public CASCADE')
-    this.db.rawQuery('CREATE SCHEMA public')
+    await this.db.rawQuery('DROP SCHEMA public CASCADE')
+    await this.db.rawQuery('CREATE SCHEMA public')
 
     this.logger.success('All tables drop successfully')
 
-    this.kernel.exec('migration:run', [])
+    await this.kernel.exec('migration:run', [])
 
     this.logger.success('All migrations run successfully')
   }
