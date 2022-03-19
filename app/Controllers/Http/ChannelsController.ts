@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { schema } from '@ioc:Adonis/Core/Validator'
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Channel from 'App/Models/Channel'
 
 export enum ChannelTypes {
@@ -8,8 +8,30 @@ export enum ChannelTypes {
 }
 
 export default class ChannelsController {
-  public async index({}: HttpContextContract) {}
+  /**
+   * Fetch public channels
+   */
+  public async index({ request, response }: HttpContextContract) {
+    const validationSchema = schema.create({
+      page: schema.number.optional([rules.unsigned()]),
+      limit: schema.number.optional([rules.range(10, 50)]),
+    })
 
+    const data = await request.validate({ schema: validationSchema })
+
+    // TODO: filter out banned channels and channels where user is already in
+
+    const channels = await Channel.query()
+      .where('type', ChannelTypes.Public)
+      .whereNull('deleted_at')
+      .paginate(data.page || 1, data.limit || 50)
+
+    return response.ok(channels)
+  }
+
+  /**
+   * Creates new channel
+   */
   public async create({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
       name: schema.string({ trim: true }),
