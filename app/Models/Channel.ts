@@ -1,6 +1,7 @@
 import {
   BaseModel,
   beforeCreate,
+  beforeDelete,
   beforeFetch,
   beforeFind,
   BelongsTo,

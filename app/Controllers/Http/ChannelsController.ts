@@ -68,5 +68,21 @@ export default class ChannelsController {
 
   public async update({}: HttpContextContract) {}
 
-  public async destroy({}: HttpContextContract) {}
+  public async destroy({ auth, response, params: { id } }: HttpContextContract) {
+    const channel = await Channel.findOrFail(id)
+
+    if (!channel) {
+      return response.badRequest('Channel not found')
+    }
+
+    if (channel.administratorId !== auth.user?.id) {
+      return response.badRequest('Permission denied')
+    }
+
+    // TODO: soft delete
+
+    await channel.delete()
+
+    return response.noContent()
+  }
 }
