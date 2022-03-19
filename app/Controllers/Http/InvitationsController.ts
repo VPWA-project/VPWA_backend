@@ -10,8 +10,30 @@ enum InvitationStatus {
 }
 
 export default class InvitationsController {
-  public async index({}: HttpContextContract) {}
+  /**
+   * Get all user's invitations
+   */
+  public async index({ auth, response }: HttpContextContract) {
+    const user = auth.user as User
 
+    const invitations = await Invitation.query()
+      .where('invited_by_id', user.id)
+      .whereNull('accepted_at')
+      .orWhere('user_id', user.id)
+      .whereNull('accepted_at')
+
+    const sendedInvitations = invitations.filter((invitation) => invitation.invitedById === user.id)
+    const receivedInvitations = invitations.filter((invitation) => invitation.userId === user.id)
+
+    return response.ok({
+      sended: sendedInvitations,
+      received: receivedInvitations,
+    })
+  }
+
+  /**
+   * Creates new invitation
+   */
   public async createInvitation({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
       channelId: schema.string({ trim: true }, [rules.exists({ table: 'channels', column: 'id' })]),
@@ -21,6 +43,7 @@ export default class InvitationsController {
     const data = await request.validate({ schema: validationSchema })
     const user = auth.user as User
 
+    // TODO: check if user is not inviting himself
     // TODO: check if user is already in given channel
 
     // check if invited user was already invited to given channel
@@ -42,6 +65,9 @@ export default class InvitationsController {
     return response.created(invitation)
   }
 
+  /**
+   * Accepts or declines invitation
+   */
   public async resolve({ auth, request, response, params: { id } }: HttpContextContract) {
     const validationSchema = schema.create({
       status: schema.enum(Object.values(InvitationStatus)),
@@ -81,6 +107,9 @@ export default class InvitationsController {
 
   public async update({}: HttpContextContract) {}
 
+  /**
+   * Deletes invitation
+   */
   public async destroy({ auth, response, params: { id } }: HttpContextContract) {
     const invitation = await Invitation.findOrFail(id)
 
