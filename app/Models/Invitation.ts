@@ -20,7 +20,7 @@ export default class Invitation extends BaseModel {
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: false })
   public acceptedAt: DateTime
 
   @beforeCreate()

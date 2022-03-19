@@ -32,6 +32,8 @@ Route.group(() => {
   Route.get('channels', 'ChannelsController.index')
   Route.post('channels', 'ChannelsController.create')
   Route.delete('channels/:id', 'ChannelsController.destroy')
+
+  Route.post('invitations', 'InvitationsController.createInvitation')
 }).middleware('auth')
 
 // GET channels - index - fetch all public channels - paginated
