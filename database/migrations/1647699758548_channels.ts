@@ -8,7 +8,7 @@ export default class Channels extends BaseSchema {
       table.uuid('id').primary()
       table.uuid('administrator_id').references('id').inTable('users').onDelete('SET NULL')
 
-      table.string('name', 255).notNullable().unique()
+      table.string('name', 255).notNullable()
       table.enum('type', ['PUBLIC', 'PRIVATE']).defaultTo('PUBLIC')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
