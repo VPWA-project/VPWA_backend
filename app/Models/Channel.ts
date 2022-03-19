@@ -1,18 +1,20 @@
 import {
   BaseModel,
   beforeCreate,
-  beforeDelete,
   beforeFetch,
   beforeFind,
   BelongsTo,
   belongsTo,
   column,
+  HasMany,
+  hasMany,
   LucidRow,
   ModelQueryBuilderContract,
 } from '@ioc:Adonis/Lucid/Orm'
 import { ChannelTypes } from 'App/Controllers/Http/ChannelsController'
 import { DateTime } from 'luxon'
 import { v4 as uuid } from 'uuid'
+import Invitation from './Invitation'
 import User from './User'
 
 export default class Channel extends BaseModel {
@@ -64,4 +66,9 @@ export default class Channel extends BaseModel {
   public static async createUUID(user: Channel) {
     user.id = uuid()
   }
+
+  @hasMany(() => Invitation, {
+    foreignKey: 'channel_id',
+  })
+  public invitations: HasMany<typeof Invitation>
 }

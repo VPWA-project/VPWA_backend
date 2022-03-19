@@ -10,6 +10,7 @@ import {
 import { DateTime } from 'luxon'
 import { v4 as uuid } from 'uuid'
 import Channel from './Channel'
+import Invitation from './Invitation'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -39,11 +40,6 @@ export default class User extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @hasMany(() => Channel, {
-    foreignKey: 'administrator_id',
-  })
-  public ownChannels: HasMany<typeof Channel>
-
   @beforeSave()
   public static async hashPassword(user: User) {
     if (user.$dirty.password) {
@@ -55,4 +51,19 @@ export default class User extends BaseModel {
   public static async createUUID(user: User) {
     user.id = uuid()
   }
+
+  @hasMany(() => Channel, {
+    foreignKey: 'administrator_id',
+  })
+  public ownChannels: HasMany<typeof Channel>
+
+  @hasMany(() => Invitation, {
+    foreignKey: 'user_id',
+  })
+  public receivedInvitations: HasMany<typeof Invitation>
+
+  @hasMany(() => Invitation, {
+    foreignKey: 'invited_by_id',
+  })
+  public sendedInvitations: HasMany<typeof Invitation>
 }
