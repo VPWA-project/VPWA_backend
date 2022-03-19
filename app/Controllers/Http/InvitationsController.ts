@@ -42,5 +42,22 @@ export default class InvitationsController {
 
   public async update({}: HttpContextContract) {}
 
-  public async destroy({}: HttpContextContract) {}
+  public async destroy({ auth, response, params: { id } }: HttpContextContract) {
+    const invitation = await Invitation.findOrFail(id)
+
+    if (!invitation) {
+      return response.badRequest('Invitation not found')
+    }
+
+    const user = auth.user as User
+
+    // TODO: administrator of the channel can also delete invitation
+    if (invitation.invitedById !== user.id) {
+      return response.badRequest('Permission denied')
+    }
+
+    await invitation.delete()
+
+    return response.noContent()
+  }
 }
