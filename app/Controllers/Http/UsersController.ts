@@ -4,11 +4,18 @@ import User from 'App/Models/User'
 
 export default class UsersController {
   public async login({ auth, request, response }: HttpContextContract) {
-    const email = request.input('email')
-    const password = request.input('password')
+    const validationSchema = schema.create({
+      email: schema.string({ trim: true }, [
+        rules.email(),
+        rules.unique({ table: 'users', column: 'email' }),
+      ]),
+      password: schema.string(),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
 
     try {
-      const token = await auth.use('api').attempt(email, password, {
+      const token = await auth.use('api').attempt(data.email, data.password, {
         expiresIn: '1day',
       })
       return token
