@@ -33,8 +33,8 @@ Route.group(() => {
 
   Route.get('channels', 'ChannelsController.index')
   Route.post('channels', 'ChannelsController.create')
-  Route.post('channels/:id', 'ChannelsController.join')
-  Route.post('channels/:id', 'ChannelsController.leave')
+  Route.post('channels/:id/join', 'ChannelsController.join')
+  Route.post('channels/:id/leave', 'ChannelsController.leave')
   Route.delete('channels/:id', 'ChannelsController.destroy')
 
   Route.get('invitations', 'InvitationsController.index')
