@@ -20,6 +20,7 @@ export default class ChannelsController {
     const data = await request.validate({ schema: validationSchema })
 
     // TODO: filter out banned channels and channels where user is already in
+    // TODO: allow search by name option
 
     const channels = await Channel.query()
       .where('type', ChannelTypes.Public)

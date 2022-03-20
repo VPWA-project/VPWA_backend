@@ -18,6 +18,7 @@
 |
 */
 
+import { Router } from '@adonisjs/core/build/standalone'
 import Route from '@ioc:Adonis/Core/Route'
 
 Route.get('/', async () => {
@@ -29,6 +30,8 @@ Route.post('register', 'UsersController.register')
 Route.post('logout', 'UsersController.logout')
 
 Route.group(() => {
+  Route.get('users', 'UsersController.index')
+
   Route.get('channels', 'ChannelsController.index')
   Route.post('channels', 'ChannelsController.create')
   Route.delete('channels/:id', 'ChannelsController.destroy')
