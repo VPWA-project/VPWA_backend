@@ -18,7 +18,6 @@
 |
 */
 
-import { Router } from '@adonisjs/core/build/standalone'
 import Route from '@ioc:Adonis/Core/Route'
 
 Route.get('/', async () => {

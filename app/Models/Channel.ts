@@ -9,6 +9,8 @@ import {
   HasMany,
   hasMany,
   LucidRow,
+  ManyToMany,
+  manyToMany,
   ModelQueryBuilderContract,
 } from '@ioc:Adonis/Lucid/Orm'
 import { ChannelTypes } from 'App/Controllers/Http/ChannelsController'
@@ -71,4 +73,7 @@ export default class Channel extends BaseModel {
     foreignKey: 'channel_id',
   })
   public invitations: HasMany<typeof Invitation>
+
+  @manyToMany(() => User)
+  public users: ManyToMany<typeof User>
 }

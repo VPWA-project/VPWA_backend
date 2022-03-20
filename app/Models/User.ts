@@ -6,6 +6,8 @@ import {
   column,
   HasMany,
   hasMany,
+  ManyToMany,
+  manyToMany,
 } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 import { v4 as uuid } from 'uuid'
@@ -66,4 +68,7 @@ export default class User extends BaseModel {
     foreignKey: 'invited_by_id',
   })
   public sendedInvitations: HasMany<typeof Invitation>
+
+  @manyToMany(() => Channel)
+  public channels: ManyToMany<typeof Channel>
 }
