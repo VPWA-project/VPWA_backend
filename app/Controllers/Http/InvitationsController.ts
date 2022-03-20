@@ -20,6 +20,7 @@ export default class InvitationsController {
       .whereNull('accepted_at')
       .orWhere('user_id', user.id)
       .whereNull('accepted_at')
+      .orderBy('created_at', 'desc')
 
     const sendedInvitations = invitations.filter((invitation) => invitation.invitedById === user.id)
     const receivedInvitations = invitations.filter((invitation) => invitation.userId === user.id)
@@ -43,6 +44,8 @@ export default class InvitationsController {
     const user = auth.user as User
 
     // TODO: check if user is not inviting himself
+    // TODO: check if user is admin if channel is private
+    // TODO: check if the channel exist
     // TODO: check if user is already in given channel
 
     // check if invited user was already invited to given channel

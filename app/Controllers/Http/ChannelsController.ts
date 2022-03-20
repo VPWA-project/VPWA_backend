@@ -61,6 +61,25 @@ export default class ChannelsController {
     return response.created(channel)
   }
 
+  /**
+   * Joins to a channel
+   */
+  public async join({}: HttpContextContract) {
+    // TODO: check if user is already in the channel
+    // TODO: check if the was not banned
+    // TODO: if channel is private, check if user has valid invitation
+    // TODO: check if the channel exist
+  }
+
+  /**
+   * Leaves a channel
+   */
+  public async leave({}: HttpContextContract) {
+    // TODO: check if user is in channel
+    // TODO: check if the channel exist
+    // TODO: check if user is admin of the channel
+  }
+
   public async store({}: HttpContextContract) {}
 
   public async show({}: HttpContextContract) {}

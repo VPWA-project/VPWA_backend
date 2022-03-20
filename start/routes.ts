@@ -33,6 +33,8 @@ Route.group(() => {
 
   Route.get('channels', 'ChannelsController.index')
   Route.post('channels', 'ChannelsController.create')
+  Route.post('channels/:id', 'ChannelsController.join')
+  Route.post('channels/:id', 'ChannelsController.leave')
   Route.delete('channels/:id', 'ChannelsController.destroy')
 
   Route.get('invitations', 'InvitationsController.index')
@@ -41,7 +43,7 @@ Route.group(() => {
   Route.delete('invitations/:id', 'InvitationsController.destroy')
 }).middleware('auth')
 
-// GET channels - index - fetch all public channels - paginated
+// GET channels - index - fetch all public channels - search - paginated
 // POST channels - create - create new channel
 // **GET channels/:id - show - fetch info about channel
 // *DELETE channels/:id - destroy - delete channel
