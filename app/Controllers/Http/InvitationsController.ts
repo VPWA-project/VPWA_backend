@@ -2,7 +2,6 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
-import { DateTime } from 'luxon'
 
 enum InvitationStatus {
   Accept = 'ACCEPT',
@@ -87,16 +86,19 @@ export default class InvitationsController {
       return response.badRequest('Invitation does not belongs to you')
     }
 
-    invitation.acceptedAt = DateTime.local()
+    //invitation.acceptedAt = DateTime.local()
 
-    await invitation.save()
+    //await invitation.save()
 
     if (data.status === InvitationStatus.Accept) {
-      // TODO: add user to channel
-      // TODO: add resolve status to invitation schema or delete after
+      // add user to channel
+      await user.related('channels').attach([invitation.channelId])
     }
 
-    return response.ok(invitation)
+    // TODO: add resolve status to invitation schema or delete after
+    await invitation.delete()
+
+    return response.ok({})
   }
 
   public async store({}: HttpContextContract) {}

@@ -1,7 +1,7 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
 
-export default class ChannelsUsers extends BaseSchema {
-  protected tableName = 'channels_users'
+export default class ChannelUser extends BaseSchema {
+  protected tableName = 'channel_user'
 
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
@@ -9,7 +9,7 @@ export default class ChannelsUsers extends BaseSchema {
       table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE')
       table.uuid('channel_id').references('id').inTable('channels').onDelete('CASCADE')
 
-      table.timestamp('created_at', { useTz: true })
+      table.timestamp('created_at', { useTz: true }).defaultTo('now')
     })
   }
 
