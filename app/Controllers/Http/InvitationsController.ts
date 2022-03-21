@@ -47,6 +47,7 @@ export default class InvitationsController {
     // TODO: check if user is admin if channel is private
     // TODO: check if the channel exist
     // TODO: check if user is already in given channel
+    // TODO: delete ban if exist
 
     // check if invited user was already invited to given channel
     const previousInvitation = await Invitation.query()

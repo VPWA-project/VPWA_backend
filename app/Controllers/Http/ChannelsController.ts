@@ -1,3 +1,4 @@
+import { SignalsListener } from '@adonisjs/core/build/src/Ignitor/SignalsListener'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Channel from 'App/Models/Channel'
@@ -6,6 +7,11 @@ import User from 'App/Models/User'
 export enum ChannelTypes {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
+}
+
+export enum KickType {
+  Kick = 'KICK',
+  Revoke = 'REVOKE',
 }
 
 export default class ChannelsController {
@@ -140,6 +146,84 @@ export default class ChannelsController {
     } else {
       // leave the channel
       await user.related('channels').detach([channel.id])
+    }
+
+    return response.ok({})
+  }
+
+  public async kick({ auth, request, response, params: { id } }: HttpContextContract) {
+    const validationSchema = schema.create({
+      method: schema.enum(Object.values(KickType)),
+      userId: schema.string({ trim: true }, [rules.exists({ table: 'users', column: 'id' })]),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
+
+    const user = auth.user as User
+
+    // check if user wants to kick himself
+    if (user.id === data.userId) {
+      return response.badRequest('You can not kick/revoke yourself')
+    }
+
+    // check if the channel exist
+    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
+
+    // check if kicker is in the channel
+    if (!channel) {
+      return response.badRequest('You are not in the channel')
+    }
+
+    const isKickerAdmin = user.id === channel.administratorId
+
+    // check if kicker has permisions
+    if (data.method === KickType.Revoke && !isKickerAdmin) {
+      return response.badRequest('You must be administrator of the channel to revoke users')
+    }
+
+    // kicker must be admin to kick in private channels
+    if (channel.type === ChannelTypes.Private && !isKickerAdmin) {
+      return response.badRequest('Permission denied')
+    }
+
+    // check if user is in the channel
+    const userToBeKicked = (await channel.related('users').query()).find(
+      (user) => user.id === data.userId
+    )
+
+    if (!userToBeKicked) {
+      return response.badRequest('User is not channel member')
+    }
+
+    if (data.method === KickType.Kick) {
+      if (isKickerAdmin) {
+        // ban
+        await userToBeKicked.related('bannedChannels').attach([channel.id])
+
+        // remove kicks
+      } else {
+        // check if the user has already kicked the user before
+        
+        if() {
+          // kick
+          await channel.related('kickedUsers').attach([userToBeKicked.id])
+        }
+        else {
+          return response.badRequest('You have already kicked the user')
+        }
+
+        // 3x kick = ban
+        const kickCount = await channel.related('kickedUsers').query().where('kicked_user_id', userToBeKicked.id).count('*', 'total')
+        if(kickCount.length >= 3) {
+          // ban
+          await userToBeKicked.related('bannedChannels').attach([channel.id])
+          // remove kicks
+
+        }
+      }
+    } else if (data.method === KickType.Revoke) {
+      // remove user from the channel
+      await userToBeKicked.related('channels').detach([channel.id])
     }
 
     return response.ok({})

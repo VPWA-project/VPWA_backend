@@ -35,6 +35,7 @@ Route.group(() => {
   Route.post('channels', 'ChannelsController.create')
   Route.post('channels/:id/join', 'ChannelsController.join')
   Route.post('channels/:id/leave', 'ChannelsController.leave')
+  Route.post('channels/:id/kick', 'ChannelsController.kick')
   Route.delete('channels/:id', 'ChannelsController.destroy')
 
   Route.get('invitations', 'InvitationsController.index')
@@ -57,7 +58,7 @@ Route.group(() => {
 // DELETE invitations/:id - destroy - deletes invitation (can send only user who invited the other user)
 
 // GET channels/:id/users - index - fetch all channel users (user must be part of channel)
-// POST channels/:id/users/:id/ban - create - kick or ban user (must be public for normal users)
+// POST channels/:id/users/:id/kick - create - kick user (must be public for normal users)
 
 // **GET channels/:id/messages - index - fetch all messages of given channel - paginated
 // POST channels/:id/messages - create - create new message in channel

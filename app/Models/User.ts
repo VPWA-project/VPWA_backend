@@ -81,4 +81,10 @@ export default class User extends BaseModel {
 
   @hasMany(() => Message)
   public messages: HasMany<typeof Message>
+
+  @manyToMany(() => Channel, {
+    pivotForeignKey: 'kicked_user_id',
+    pivotTable: 'kicked_users',
+  })
+  public kickedChannels: ManyToMany<typeof Channel>
 }
