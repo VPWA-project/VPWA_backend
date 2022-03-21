@@ -42,6 +42,8 @@ export default class ChannelsController {
 
     const data = await request.validate({ schema: validationSchema })
 
+    const user = auth.user as User
+
     // check if channel with given name already exist
     const existingChannel = await Channel.query()
       .where('name', data.name)
@@ -59,7 +61,8 @@ export default class ChannelsController {
       administratorId: auth.user?.id as string,
     })
 
-    // TODO: join administrator in channel
+    // join administrator in the channel
+    await user.related('channels').attach([channel.id])
 
     return response.created(channel)
   }
