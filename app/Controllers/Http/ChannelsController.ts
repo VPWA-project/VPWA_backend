@@ -59,17 +59,54 @@ export default class ChannelsController {
       administratorId: auth.user?.id as string,
     })
 
+    // TODO: join administrator in channel
+
     return response.created(channel)
   }
 
   /**
    * Joins to a channel
    */
-  public async join({}: HttpContextContract) {
-    // TODO: check if user is already in the channel
+  public async join({ auth, response, params: { id } }: HttpContextContract) {
+    const user = auth.user as User
+
+    // check if user is already in the channel
+    const alreadyInChannel = !(await user.related('channels').query()).find(
+      (channel) => channel.id === id
+    )
+
+    if (alreadyInChannel) {
+      return response.badRequest('You are already in the channel')
+    }
+
     // TODO: check if the was not banned
-    // TODO: if channel is private, check if user has valid invitation
-    // TODO: check if the channel exist
+
+    // check if the channel exist
+    const channel = await Channel.findOrFail(id)
+
+    if (!channel) {
+      return response.badRequest('Channel does not exist')
+    }
+
+    if (channel.deletedAt !== null) {
+      return response.badRequest('Channel is deleted')
+    }
+
+    // if channel is private, check if user has valid invitation
+    if (channel.type === ChannelTypes.Private) {
+      const invitation = (await user.related('receivedInvitations').query()).find(
+        (invitation) => invitation.channelId === channel.id
+      )
+
+      if (!invitation) {
+        return response.badRequest('You dont have invitation')
+      }
+    }
+
+    // join channel
+    await user.related('channels').attach([channel.id])
+
+    return response.ok(channel)
   }
 
   /**
