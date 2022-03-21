@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Channel from 'App/Models/Channel'
+import User from 'App/Models/User'
 
 export enum ChannelTypes {
   Public = 'PUBLIC',
@@ -74,10 +75,34 @@ export default class ChannelsController {
   /**
    * Leaves a channel
    */
-  public async leave({}: HttpContextContract) {
-    // TODO: check if user is in channel
-    // TODO: check if the channel exist
-    // TODO: check if user is admin of the channel
+  public async leave({ auth, response, params: { id } }: HttpContextContract) {
+    const user = auth.user as User
+
+    // check if the user is in the channel
+    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
+
+    if (!channel) {
+      return response.badRequest('Channel does not exist or you are not member of the channel')
+    }
+
+    // check if the channel exists
+    if (channel.deletedAt !== null) {
+      return response.badRequest('Channel is deleted')
+    }
+
+    // check if the user is admin of the channel
+    if (channel.administratorId === user.id) {
+      // delete the channel
+      // TODO: soft delete
+      await channel.delete()
+
+      return response.noContent()
+    } else {
+      // leave the channel
+      await user.related('channels').detach([channel.id])
+    }
+
+    return response.ok({})
   }
 
   public async store({}: HttpContextContract) {}
