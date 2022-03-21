@@ -17,6 +17,7 @@ import { ChannelTypes } from 'App/Controllers/Http/ChannelsController'
 import { DateTime } from 'luxon'
 import { v4 as uuid } from 'uuid'
 import Invitation from './Invitation'
+import Message from './Message'
 import User from './User'
 
 export default class Channel extends BaseModel {
@@ -88,4 +89,7 @@ export default class Channel extends BaseModel {
     pivotTable: 'kicked_users',
   })
   public kickedUsers: ManyToMany<typeof User>
+
+  @hasMany(() => Message)
+  public messages: HasMany<typeof Message>
 }

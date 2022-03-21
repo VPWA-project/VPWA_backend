@@ -13,6 +13,7 @@ import { DateTime } from 'luxon'
 import { v4 as uuid } from 'uuid'
 import Channel from './Channel'
 import Invitation from './Invitation'
+import Message from './Message'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -77,4 +78,7 @@ export default class User extends BaseModel {
     pivotTable: 'banned_users',
   })
   public bannedChannels: ManyToMany<typeof Channel>
+
+  @hasMany(() => Message)
+  public messages: HasMany<typeof Message>
 }
