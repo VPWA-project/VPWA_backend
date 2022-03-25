@@ -3,6 +3,7 @@ import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Channel from 'App/Models/Channel'
 import User from 'App/Models/User'
+import databaseConfig from 'Config/database'
 
 export enum ChannelTypes {
   Public = 'PUBLIC',
@@ -88,8 +89,6 @@ export default class ChannelsController {
       return response.badRequest('You are already in the channel')
     }
 
-    // TODO: check if the user was not banned
-
     // check if the channel exist
     const channel = await Channel.findOrFail(id)
 
@@ -99,6 +98,15 @@ export default class ChannelsController {
 
     if (channel.deletedAt !== null) {
       return response.badRequest('Channel is deleted')
+    }
+
+    // check if the user was not banned
+    const isUserBanned = !!(await user.related('bannedChannels').query()).find(
+      (bannedChannel) => bannedChannel.id === id
+    )
+
+    if (isUserBanned) {
+      return response.badRequest('User is banned')
     }
 
     // if channel is private, check if user has valid invitation
