@@ -38,6 +38,8 @@ Route.group(() => {
   Route.post('channels/:id/kick', 'ChannelsController.kick')
   Route.delete('channels/:id', 'ChannelsController.destroy')
 
+  Route.post('channels/:id/messages', 'MessagesController.create')
+
   Route.get('invitations', 'InvitationsController.index')
   Route.post('invitations', 'InvitationsController.createInvitation')
   Route.post('invitations/:id', 'InvitationsController.resolve')
