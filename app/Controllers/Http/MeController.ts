@@ -1,5 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import User from 'App/Models/User'
+import { UserStatus } from 'App/types/types'
 
 export default class MeController {
   public async index({ auth, response }: HttpContextContract) {
@@ -16,7 +18,27 @@ export default class MeController {
 
   public async edit({}: HttpContextContract) {}
 
-  public async update({}: HttpContextContract) {}
+  public async update({ auth, request, response }: HttpContextContract) {
+    const validationSchema = schema.create({
+      status: schema.enum.optional(Object.values(UserStatus)),
+      onlyNotifications: schema.boolean.optional(),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
+    const user = auth.user as User
+
+    if (data.status) {
+      user.status = data.status
+    }
+
+    if (data.onlyNotifications) {
+      user.onlyNotifications = data.onlyNotifications
+    }
+
+    await user.save()
+
+    return response.ok(user)
+  }
 
   public async destroy({}: HttpContextContract) {}
 

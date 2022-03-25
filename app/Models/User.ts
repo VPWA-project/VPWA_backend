@@ -10,6 +10,7 @@ import {
   manyToMany,
 } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
+import { UserStatus } from 'App/types/types'
 import { v4 as uuid } from 'uuid'
 import Channel from './Channel'
 import Invitation from './Invitation'
@@ -36,6 +37,12 @@ export default class User extends BaseModel {
 
   @column()
   public nickname: string
+
+  @column()
+  public status: UserStatus
+
+  @column()
+  public onlyNotifications: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
