@@ -86,5 +86,11 @@ export default class User extends BaseModel {
     pivotForeignKey: 'kicked_user_id',
     pivotTable: 'kicked_users',
   })
-  public kickedChannels: ManyToMany<typeof Channel>
+  public kicks: ManyToMany<typeof Channel>
+
+  @manyToMany(() => Channel, {
+    pivotForeignKey: 'kicked_by_user_id',
+    pivotTable: 'kicked_users',
+  })
+  public myKicks: ManyToMany<typeof Channel>
 }

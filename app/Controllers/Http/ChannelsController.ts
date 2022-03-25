@@ -1,8 +1,9 @@
-import { SignalsListener } from '@adonisjs/core/build/src/Ignitor/SignalsListener'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import Database from '@ioc:Adonis/Lucid/Database'
 import Channel from 'App/Models/Channel'
 import User from 'App/Models/User'
+import { NIL } from 'uuid'
 
 export enum ChannelTypes {
   Public = 'PUBLIC',
@@ -88,7 +89,7 @@ export default class ChannelsController {
       return response.badRequest('You are already in the channel')
     }
 
-    // TODO: check if the was not banned
+    // TODO: check if the user was not banned
 
     // check if the channel exist
     const channel = await Channel.findOrFail(id)
@@ -157,6 +158,8 @@ export default class ChannelsController {
       userId: schema.string({ trim: true }, [rules.exists({ table: 'users', column: 'id' })]),
     })
 
+    // TODO: add to migration
+
     const data = await request.validate({ schema: validationSchema })
 
     const user = auth.user as User
@@ -196,35 +199,48 @@ export default class ChannelsController {
     }
 
     if (data.method === KickType.Kick) {
+      const numberOfKicks = (
+        await channel.related('kickedUsers').query().where('kicked_user_id', userToBeKicked.id)
+      ).length
+
       if (isKickerAdmin) {
         // ban
         await userToBeKicked.related('bannedChannels').attach([channel.id])
 
         // remove kicks
+        await channel.related('kickedUsers').detach([userToBeKicked.id])
       } else {
         // check if the user has already kicked the user before
-        
-        if() {
+        const wasUserKickedByKickerBefore = !!(await channel
+          .related('kickedUsers')
+          .query()
+          .where('kicked_user_id', userToBeKicked.id)
+          .where('kicked_by_user_id', user.id)
+          .first())
+
+        if (!wasUserKickedByKickerBefore) {
           // kick
-          await channel.related('kickedUsers').attach([userToBeKicked.id])
-        }
-        else {
+          await Database.table('kicked_users').insert({
+            kicked_user_id: userToBeKicked.id,
+            kicked_by_user_id: user.id,
+            channel_id: channel.id,
+          })
+        } else {
           return response.badRequest('You have already kicked the user')
         }
 
         // 3x kick = ban
-        const kickCount = await channel.related('kickedUsers').query().where('kicked_user_id', userToBeKicked.id).count('*', 'total')
-        if(kickCount.length >= 3) {
+        if (numberOfKicks + 1 >= 3) {
           // ban
           await userToBeKicked.related('bannedChannels').attach([channel.id])
           // remove kicks
-
+          await channel.related('kickedUsers').detach([userToBeKicked.id])
         }
       }
-    } else if (data.method === KickType.Revoke) {
-      // remove user from the channel
-      await userToBeKicked.related('channels').detach([channel.id])
     }
+
+    // remove channel
+    await userToBeKicked.related('channels').detach([channel.id])
 
     return response.ok({})
   }
