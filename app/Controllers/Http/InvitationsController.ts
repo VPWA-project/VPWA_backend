@@ -127,7 +127,7 @@ export default class InvitationsController {
 
     const user = auth.user as User
 
-    // TODO: administrator of the channel can also delete invitation
+    // administrator of the channel can also delete invitation
     if (invitation.invited_by_id !== user.id && invitation.channel.administratorId !== user.id) {
       return response.badRequest('Permission denied')
     }
