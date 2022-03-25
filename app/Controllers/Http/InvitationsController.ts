@@ -1,7 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import Channel from 'App/Models/Channel'
 import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
+import { ChannelTypes } from './ChannelsController'
 
 enum InvitationStatus {
   Accept = 'ACCEPT',
@@ -45,11 +47,31 @@ export default class InvitationsController {
     const data = await request.validate({ schema: validationSchema })
     const user = auth.user as User
 
-    // TODO: check if user is not inviting himself
-    // TODO: check if user is admin if channel is private
-    // TODO: check if the channel exist
-    // TODO: check if user is already in given channel
-    // TODO: delete ban if exist
+    // check if user is not inviting himself
+    if (user.id === data.userId) {
+      return response.badRequest('You can not invite yourself')
+    }
+
+    const channel = await Channel.find(data.channelId)
+
+    // check if user is admin if channel is private
+    if (user.id !== channel?.administratorId && channel?.type === ChannelTypes.Private) {
+      return response.badRequest('Permission denied')
+    }
+
+    // check if user is already in given channel
+    const isUserInChannel = !!(await user.related('channels').query()).find(
+      (memberChannel) => memberChannel.id === channel?.id
+    )
+
+    if (isUserInChannel) {
+      return response.badRequest('User is already in the channel')
+    }
+
+    // delete ban if exist
+    ;(await user.related('bannedChannels').query())
+      .find((bannedChannel) => bannedChannel.id === channel?.id)
+      ?.delete()
 
     // check if invited user was already invited to given channel
     const previousInvitation = await Invitation.query()
