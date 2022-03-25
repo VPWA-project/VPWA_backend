@@ -9,10 +9,10 @@ export default class Invitation extends BaseModel {
   public id: string
 
   @column()
-  public userId: string
+  public user_id: string
 
   @column()
-  public invitedById: string
+  public invited_by_id: string
 
   @column()
   public channelId: string

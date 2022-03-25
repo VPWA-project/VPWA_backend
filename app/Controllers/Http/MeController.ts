@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
 import { UserStatus } from 'App/types/types'
 
@@ -50,5 +51,11 @@ export default class MeController {
     return response.ok(channels)
   }
 
-  public async getInvitations({}: HttpContextContract) {}
+  public async getInvitations({ auth, response }: HttpContextContract) {
+    const user = auth.user as User
+
+    const invitations = await user.related('receivedInvitations').query()
+
+    return response.ok(invitations)
+  }
 }
