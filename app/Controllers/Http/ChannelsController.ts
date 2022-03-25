@@ -3,7 +3,6 @@ import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Channel from 'App/Models/Channel'
 import User from 'App/Models/User'
-import { NIL } from 'uuid'
 
 export enum ChannelTypes {
   Public = 'PUBLIC',
