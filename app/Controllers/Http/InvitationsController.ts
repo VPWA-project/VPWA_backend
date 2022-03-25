@@ -22,8 +22,10 @@ export default class InvitationsController {
       .whereNull('accepted_at')
       .orderBy('created_at', 'desc')
 
-    const sendedInvitations = invitations.filter((invitation) => invitation.invitedById === user.id)
-    const receivedInvitations = invitations.filter((invitation) => invitation.userId === user.id)
+    const sendedInvitations = invitations.filter(
+      (invitation) => invitation.invited_by_id === user.id
+    )
+    const receivedInvitations = invitations.filter((invitation) => invitation.user_id === user.id)
 
     return response.ok({
       sended: sendedInvitations,
@@ -62,7 +64,7 @@ export default class InvitationsController {
 
     const invitation = await Invitation.create({
       ...data,
-      invitedById: user.id,
+      invited_by_id: user.id,
     })
 
     return response.created(invitation)
@@ -86,7 +88,7 @@ export default class InvitationsController {
 
     const user = auth.user as User
 
-    if (invitation.userId !== user.id) {
+    if (invitation.user_id !== user.id) {
       return response.badRequest('Invitation does not belongs to you')
     }
 
@@ -126,7 +128,7 @@ export default class InvitationsController {
     const user = auth.user as User
 
     // TODO: administrator of the channel can also delete invitation
-    if (invitation.invitedById !== user.id) {
+    if (invitation.invited_by_id !== user.id) {
       return response.badRequest('Permission denied')
     }
 
