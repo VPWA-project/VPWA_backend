@@ -42,7 +42,13 @@ export default class MeController {
 
   public async destroy({}: HttpContextContract) {}
 
-  public async getChannels({}: HttpContextContract) {}
+  public async getChannels({ auth, response }: HttpContextContract) {
+    const user = auth.user as User
+
+    const channels = await user.related('channels').query()
+
+    return response.ok(channels)
+  }
 
   public async getInvitations({}: HttpContextContract) {}
 }
