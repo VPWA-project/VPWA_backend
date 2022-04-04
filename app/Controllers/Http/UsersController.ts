@@ -5,10 +5,7 @@ import User from 'App/Models/User'
 export default class UsersController {
   public async login({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
-      email: schema.string({ trim: true }, [
-        rules.email(),
-        rules.unique({ table: 'users', column: 'email' }),
-      ]),
+      email: schema.string({ trim: true }, [rules.email()]),
       password: schema.string(),
     })
 
@@ -52,7 +49,33 @@ export default class UsersController {
     return response.created(user)
   }
 
-  public async index({}: HttpContextContract) {}
+  /**
+   * Fetch all users
+   */
+  public async index({ auth, request, response }: HttpContextContract) {
+    const validationSchema = schema.create({
+      page: schema.number.optional([rules.unsigned()]),
+      limit: schema.number.optional([rules.range(10, 50)]),
+      search: schema.string.optional({ trim: true }),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
+    const user = auth.user as User
+
+    const query = User.query()
+      .select('id', 'email', 'firstname', 'lastname', 'nickname')
+      .where('id', '!=', user.id)
+
+    if (data.search) {
+      query
+        .where('nickname', 'ILIKE', data.search + '%') // startswith
+        .orderBy('nickname', 'asc')
+    }
+
+    const users = await query.paginate(data.page || 1, data.limit || 50)
+
+    return response.ok(users)
+  }
 
   public async create({}: HttpContextContract) {}
 

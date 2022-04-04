@@ -1,7 +1,20 @@
 import Hash from '@ioc:Adonis/Core/Hash'
-import { BaseModel, beforeCreate, beforeSave, column } from '@ioc:Adonis/Lucid/Orm'
+import {
+  BaseModel,
+  beforeCreate,
+  beforeSave,
+  column,
+  HasMany,
+  hasMany,
+  ManyToMany,
+  manyToMany,
+} from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
+import { UserStatus } from 'App/types/types'
 import { v4 as uuid } from 'uuid'
+import Channel from './Channel'
+import Invitation from './Invitation'
+import Message from './Message'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -25,6 +38,12 @@ export default class User extends BaseModel {
   @column()
   public nickname: string
 
+  @column()
+  public status: UserStatus
+
+  @column()
+  public onlyNotifications: boolean
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
@@ -42,4 +61,43 @@ export default class User extends BaseModel {
   public static async createUUID(user: User) {
     user.id = uuid()
   }
+
+  @hasMany(() => Channel, {
+    foreignKey: 'administrator_id',
+  })
+  public ownChannels: HasMany<typeof Channel>
+
+  @hasMany(() => Invitation, {
+    foreignKey: 'user_id',
+  })
+  public receivedInvitations: HasMany<typeof Invitation>
+
+  @hasMany(() => Invitation, {
+    foreignKey: 'invited_by_id',
+  })
+  public sendedInvitations: HasMany<typeof Invitation>
+
+  @manyToMany(() => Channel)
+  public channels: ManyToMany<typeof Channel>
+
+  @manyToMany(() => Channel, {
+    pivotForeignKey: 'user_id',
+    pivotTable: 'banned_users',
+  })
+  public bannedChannels: ManyToMany<typeof Channel>
+
+  @hasMany(() => Message)
+  public messages: HasMany<typeof Message>
+
+  @manyToMany(() => Channel, {
+    pivotForeignKey: 'kicked_user_id',
+    pivotTable: 'kicked_users',
+  })
+  public kicks: ManyToMany<typeof Channel>
+
+  @manyToMany(() => Channel, {
+    pivotForeignKey: 'kicked_by_user_id',
+    pivotTable: 'kicked_users',
+  })
+  public myKicks: ManyToMany<typeof Channel>
 }
