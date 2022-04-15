@@ -24,13 +24,13 @@ export default class UsersController {
     return await auth.use('api').logout()
   }
 
-  public async register({ request, response }: HttpContextContract) {
+  public async register({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
       email: schema.string({ trim: true }, [
         rules.email(),
         rules.unique({ table: 'users', column: 'email' }),
       ]),
-      password: schema.string({}, [rules.minLength(8)]),
+      password: schema.string({}, [rules.minLength(8), rules.confirmed()]),
       firstname: schema.string({ trim: true }),
       lastname: schema.string({ trim: true }),
       nickname: schema.string({ trim: true }, [
@@ -41,7 +41,14 @@ export default class UsersController {
     const data = await request.validate({ schema: validationSchema })
     const user = await User.create(data)
 
-    return response.created(user)
+    const token = await auth.use('api').attempt(data.email, data.password, {
+      expiresIn: '1day',
+    })
+
+    return response.created({
+      user,
+      token,
+    })
   }
 
   /**
