@@ -1,9 +1,26 @@
+import { inject } from '@adonisjs/core/build/standalone'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { schema } from '@ioc:Adonis/Core/Validator'
+import { WsContextContract } from '@ioc:Ruby184/Socket.IO/WsContext'
 import Channel from 'App/Models/Channel'
 import User from 'App/Models/User'
 
+@inject(['Repositories/MessageRepository'])
 export default class MessagesController {
+  constructor(private messageRepository: MessageRepositoryContract) {}
+
+  public async loadMessages({ params }: WsContextContract) {
+    return this.messageRepository.getAll(params.name)
+  }
+
+  public async addMessage({params, socket, auth}: WsContextContract, content: string) {
+    const message = await this.messageRepository.create(params.name, auth.user!.id, content)
+
+    socket.broadcast.emit('message', message)
+
+    return message
+  }
+
   public async index({}: HttpContextContract) {}
 
   /**
