@@ -1,4 +1,7 @@
-import type { MessageRepositoryContract } from '@ioc:Repositories/MessageRepository'
+import type {
+  MessageRepositoryContract,
+  SerializedMessage,
+} from '@ioc:Repositories/MessageRepository'
 import Channel from 'App/Models/Channel'
 
 export default class MessageRepository implements MessageRepositoryContract {

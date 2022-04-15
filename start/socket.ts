@@ -20,3 +20,7 @@ Ws.namespace('/')
     console.log('websocket greeted: ', socket.id, msg)
     return 'hi'
   })
+
+Ws.namespace('channels/:name')
+  .on('loadMessages', 'MessagesController.loadMessages')
+  .on('addMessage', 'MessagesController.addMessage')
