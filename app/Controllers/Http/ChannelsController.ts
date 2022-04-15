@@ -59,7 +59,15 @@ export default class ChannelsController {
     // TODO: if last message was 30 days ago, mark channel as deleted and create channel with the same name
 
     if (existingChannel) {
-      return response.badRequest('Channel name is already taken')
+      return response.status(422).json({
+        errors: [
+          {
+            field: 'name',
+            rule: 'unique',
+            message: 'Channel name is already taken',
+          },
+        ],
+      })
     }
 
     const channel = await Channel.create({
