@@ -24,9 +24,18 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.post('login', 'UsersController.login')
-Route.post('register', 'UsersController.register')
-Route.post('logout', 'UsersController.logout')
+Route.group(() => {
+  Route.post('login', 'UsersController.login')
+  Route.post('register', 'UsersController.register')
+
+  Route.group(() => {
+    Route.post('logout', 'UsersController.logout')
+    Route.get('me', 'MeController.index')
+    Route.put('me', 'MeController.update')
+    Route.get('me/channels', 'MeController.getChannels')
+    Route.get('me/invitations', 'MeController.getInvitations')
+  }).middleware('auth')
+}).prefix('auth')
 
 Route.group(() => {
   Route.get('users', 'UsersController.index')
@@ -44,11 +53,6 @@ Route.group(() => {
   Route.post('invitations', 'InvitationsController.createInvitation')
   Route.post('invitations/:id', 'InvitationsController.resolve')
   Route.delete('invitations/:id', 'InvitationsController.destroy')
-
-  Route.get('me', 'MeController.index')
-  Route.put('me', 'MeController.update')
-  Route.get('me/channels', 'MeController.getChannels')
-  Route.get('me/invitations', 'MeController.getInvitations')
 }).middleware('auth')
 
 // GET channels - index - fetch all public channels - search - paginated
