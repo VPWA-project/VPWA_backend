@@ -1,4 +1,4 @@
-declare module '@ioc:Repositories/MessageRepository' {
+declare module '@ioc:Repositories/MessagesRepository' {
   export interface SerializedMessage {
     userId: string
     message: string
@@ -14,11 +14,11 @@ declare module '@ioc:Repositories/MessageRepository' {
     }
   }
 
-  export interface MessageRepositoryContract {
-    getAll(channelName: string): Promise<SerializedMessage[]>
-    create(channelName: string, userId: string, content: string): Promise<SerializedMessage>
+  export interface MessagesRepositoryContract {
+    getAll(id: string): Promise<SerializedMessage[]>
+    create(id: string, userId: string, content: string): Promise<SerializedMessage>
   }
 
-  const MessageRepository: MessageRepositoryContract
-  export default MessageRepository
+  const MessagesRepository: MessagesRepositoryContract
+  export default MessagesRepository
 }
