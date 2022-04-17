@@ -53,7 +53,11 @@ export default class MeController {
   public async getInvitations({ auth, response }: HttpContextContract) {
     const user = auth.user as User
 
-    const invitations = await user.related('receivedInvitations').query()
+    const invitations = await user
+      .related('receivedInvitations')
+      .query()
+      .preload('channel')
+      .preload('invitedBy')
 
     return response.ok(invitations)
   }

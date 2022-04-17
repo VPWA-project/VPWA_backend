@@ -20,18 +20,10 @@ export default class MessagesRepository implements MessagesRepositoryContract {
       .orderBy('created_at', 'desc')
       .paginate(page || 1, limit || 10)
 
-    // TODO: check if channel exists
-    // const channel = await Channel.query()
-    //   .where('name', name)
-    //   .preload('messages', (messageQuery) => messageQuery.preload('user'))
-    //   .paginate(page || 1, limit || 10)
-
     return {
       meta: messages.getMeta(),
       data: messages.all().map((message) => message.serialize() as SerializedMessage),
     }
-
-    // return channel[0].messages.map((message) => message.serialize() as SerializedMessage)
   }
 
   public async create(id: string, userId: string, content: string): Promise<SerializedMessage> {

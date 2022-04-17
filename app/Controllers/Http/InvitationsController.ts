@@ -55,7 +55,7 @@ export default class InvitationsController {
     const channel = await Channel.find(data.channelId)
 
     // check if user is admin if channel is private
-    if (user.id !== channel?.administratorId && channel?.type === ChannelTypes.Private) {
+    if (user.id !== channel?.administrator_id && channel?.type === ChannelTypes.Private) {
       return response.badRequest('Permission denied')
     }
 
@@ -120,7 +120,7 @@ export default class InvitationsController {
 
     if (data.status === InvitationStatus.Accept) {
       // add user to channel
-      await user.related('channels').attach([invitation.channelId])
+      await user.related('channels').attach([invitation.channel_id])
     }
 
     // TODO: add resolve status to invitation schema or delete after
@@ -150,7 +150,7 @@ export default class InvitationsController {
     const user = auth.user as User
 
     // administrator of the channel can also delete invitation
-    if (invitation.invited_by_id !== user.id && invitation.channel.administratorId !== user.id) {
+    if (invitation.invited_by_id !== user.id && invitation.channel.administrator_id !== user.id) {
       return response.badRequest('Permission denied')
     }
 

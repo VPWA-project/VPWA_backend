@@ -29,17 +29,17 @@ export default class Invitation extends BaseModel {
   }
 
   @belongsTo(() => User, {
-    localKey: 'invited_by_id',
+    foreignKey: 'invited_by_id',
   })
   public invitedBy: BelongsTo<typeof User>
 
   @belongsTo(() => User, {
-    localKey: 'user_id',
+    foreignKey: 'user_id',
   })
   public user: BelongsTo<typeof User>
 
   @belongsTo(() => Channel, {
-    localKey: 'channel_id',
+    foreignKey: 'channel_id',
   })
   public channel: BelongsTo<typeof Channel>
 }

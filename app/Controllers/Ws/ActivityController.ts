@@ -23,7 +23,7 @@ export default class ActivityController {
     socket.data.userId = auth.user!.id
 
     const allSockets = await socket.nsp.except(room).fetchSockets()
-    const onlineIds = new Set<number>()
+    const onlineIds = new Set<string>()
 
     for (const remoteSocket of allSockets) {
       onlineIds.add(remoteSocket.data.userId)
