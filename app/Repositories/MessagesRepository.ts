@@ -15,7 +15,7 @@ export default class MessagesRepository implements MessagesRepositoryContract {
   }
 
   public async create(id: string, userId: string, content: string): Promise<SerializedMessage> {
-    const channel = await Channel.findOrFail(id)
+    const channel = await Channel.query().where('name', id).firstOrFail()
     const message = await channel.related('messages').create({ userId: userId, message: content })
     await message.load('user')
 
