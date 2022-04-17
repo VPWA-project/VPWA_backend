@@ -64,9 +64,7 @@ export default class UsersController {
     const data = await request.validate({ schema: validationSchema })
     const user = auth.user as User
 
-    const query = User.query()
-      .select('id', 'email', 'firstname', 'lastname', 'nickname')
-      .where('id', '!=', user.id)
+    const query = User.query().where('id', '!=', user.id)
 
     if (data.search) {
       query
