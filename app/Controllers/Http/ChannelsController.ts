@@ -72,7 +72,7 @@ export default class ChannelsController {
 
     const channel = await Channel.create({
       ...(data as Channel),
-      administratorId: auth.user?.id as string,
+      administrator_id: auth.user?.id as string,
     })
 
     // join administrator in the channel
@@ -119,7 +119,7 @@ export default class ChannelsController {
     // if channel is private, check if user has valid invitation
     if (channel.type === ChannelTypes.Private) {
       const invitation = (await user.related('receivedInvitations').query()).find(
-        (invitation) => invitation.channelId === channel.id
+        (invitation) => invitation.channel_id === channel.id
       )
 
       if (!invitation) {
@@ -152,7 +152,7 @@ export default class ChannelsController {
     }
 
     // check if the user is admin of the channel
-    if (channel.administratorId === user.id) {
+    if (channel.administrator_id === user.id) {
       // delete the channel
       // TODO: soft delete
       await channel.delete()
@@ -191,7 +191,7 @@ export default class ChannelsController {
       return response.badRequest('You are not in the channel')
     }
 
-    const isKickerAdmin = user.id === channel.administratorId
+    const isKickerAdmin = user.id === channel.administrator_id
 
     // check if kicker has permisions
     if (data.method === KickType.Revoke && !isKickerAdmin) {
@@ -274,7 +274,7 @@ export default class ChannelsController {
       return response.badRequest('Channel not found')
     }
 
-    if (channel.administratorId !== auth.user?.id) {
+    if (channel.administrator_id !== auth.user?.id) {
       return response.badRequest('Permission denied')
     }
 

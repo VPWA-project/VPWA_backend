@@ -1,17 +1,13 @@
 import {
   BaseModel,
   beforeCreate,
-  beforeFetch,
-  beforeFind,
   BelongsTo,
   belongsTo,
   column,
   HasMany,
   hasMany,
-  LucidRow,
   ManyToMany,
   manyToMany,
-  ModelQueryBuilderContract,
 } from '@ioc:Adonis/Lucid/Orm'
 import { ChannelTypes } from 'App/Controllers/Http/ChannelsController'
 import { DateTime } from 'luxon'
@@ -31,10 +27,10 @@ export default class Channel extends BaseModel {
   public type: ChannelTypes
 
   @column()
-  public administratorId: string
+  public administrator_id: string
 
   @belongsTo(() => User, {
-    localKey: 'administrator_id',
+    foreignKey: 'administrator_id',
   })
   public administrator: BelongsTo<typeof User>
 
@@ -46,24 +42,6 @@ export default class Channel extends BaseModel {
 
   @column.dateTime({ serializeAs: null })
   public deletedAt: DateTime
-
-  private static softDeleteQuery = async (row: LucidRow) => {
-    if (row['delete_at']) {
-      row['delete_at'] = DateTime.local()
-
-      await row.save()
-    }
-  }
-
-  @beforeFind()
-  public static softDeletesFind = this.softDeleteQuery
-
-  @beforeFetch()
-  public static softDeletesFetch = this.softDeleteQuery
-
-  public static softDelete = async (query: ModelQueryBuilderContract<typeof BaseModel>) => {
-    query.whereNull('deleted_at')
-  }
 
   @beforeCreate()
   public static async createUUID(user: Channel) {

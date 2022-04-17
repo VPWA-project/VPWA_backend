@@ -15,7 +15,7 @@ export default class Invitation extends BaseModel {
   public invited_by_id: string
 
   @column()
-  public channelId: string
+  public channel_id: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

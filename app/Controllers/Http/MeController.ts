@@ -45,7 +45,7 @@ export default class MeController {
   public async getChannels({ auth, response }: HttpContextContract) {
     const user = auth.user as User
 
-    const channels = await user.related('channels').query()
+    const channels = await user.related('channels').query().preload('administrator')
 
     return response.ok(channels)
   }
