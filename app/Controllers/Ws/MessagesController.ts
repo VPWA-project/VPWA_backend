@@ -11,7 +11,7 @@ export default class MessagesController {
   constructor(private messageRepository: MessagesRepositoryContract) {}
 
   public async loadMessages({ params }: WsContextContract) {
-    return this.messageRepository.getAll(params.name)
+    return this.messageRepository.getMessages(params.name)
   }
 
   public async addMessage({ params, socket, auth }: WsContextContract, content: string) {

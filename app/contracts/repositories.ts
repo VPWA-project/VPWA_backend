@@ -14,8 +14,25 @@ declare module '@ioc:Repositories/MessagesRepository' {
     }
   }
 
+  export interface PageMetaData {
+    total: number
+    per_page: number
+    current_page: number
+    last_page: number
+    first_page: number
+    first_page_url: string
+    last_page_url: string
+    next_page_url: string | null
+    previous_page_url: string | null
+  }
+
+  export interface PaginatedResponse<T> {
+    meta: PageMetaData
+    data: T
+  }
+
   export interface MessagesRepositoryContract {
-    getAll(id: string): Promise<SerializedMessage[]>
+    getMessages(id: string): Promise<PaginatedResponse<SerializedMessage[]>>
     create(id: string, userId: string, content: string): Promise<SerializedMessage>
   }
 
