@@ -4,6 +4,7 @@ import type {
   SerializedMessage,
 } from '@ioc:Repositories/MessagesRepository'
 import Channel from 'App/Models/Channel'
+import Message from 'App/Models/Message'
 
 export default class MessagesRepository implements MessagesRepositoryContract {
   public async getMessages(
@@ -11,17 +12,23 @@ export default class MessagesRepository implements MessagesRepositoryContract {
     page?: number,
     limit?: number
   ): Promise<PaginatedResponse<SerializedMessage[]>> {
-    // TODO: check if channel exists
-    const channel = await Channel.query()
-      .where('name', name)
-      .preload('messages', (messageQuery) => messageQuery.preload('user'))
+    const channel = await Channel.query().where('name', name).firstOrFail()
+
+    const messages = await Message.query()
+      .where('channel_id', channel.id)
+      .preload('user')
+      .orderBy('created_at', 'desc')
       .paginate(page || 1, limit || 10)
 
-    console.log(channel)
+    // TODO: check if channel exists
+    // const channel = await Channel.query()
+    //   .where('name', name)
+    //   .preload('messages', (messageQuery) => messageQuery.preload('user'))
+    //   .paginate(page || 1, limit || 10)
 
     return {
-      meta: channel.getMeta(),
-      data: channel[0].messages.map((message) => message.serialize() as SerializedMessage),
+      meta: messages.getMeta(),
+      data: messages.all().map((message) => message.serialize() as SerializedMessage),
     }
 
     // return channel[0].messages.map((message) => message.serialize() as SerializedMessage)

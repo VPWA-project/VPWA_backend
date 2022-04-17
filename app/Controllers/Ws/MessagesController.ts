@@ -10,8 +10,9 @@ import User from 'App/Models/User'
 export default class MessagesController {
   constructor(private messageRepository: MessagesRepositoryContract) {}
 
-  public async loadMessages({ params }: WsContextContract) {
-    return this.messageRepository.getMessages(params.name)
+  public async loadMessages({ params, logger }: WsContextContract, page?: number, limit?: number) {
+    logger.info(params.name, page, limit)
+    return this.messageRepository.getMessages(params.name, page, limit)
   }
 
   public async addMessage({ params, socket, auth }: WsContextContract, content: string) {
