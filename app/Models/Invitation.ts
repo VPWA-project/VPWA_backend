@@ -8,13 +8,13 @@ export default class Invitation extends BaseModel {
   @column({ isPrimary: true })
   public id: string
 
-  @column()
+  @column({ columnName: 'user_id' })
   public userId: string
 
-  @column()
+  @column({ columnName: 'invited_by_id' })
   public invitedById: string
 
-  @column()
+  @column({ columnName: 'channel_id' })
   public channelId: string
 
   @column.dateTime({ autoCreate: true })
@@ -29,17 +29,17 @@ export default class Invitation extends BaseModel {
   }
 
   @belongsTo(() => User, {
-    foreignKey: 'invited_by_id',
+    foreignKey: 'invitedById',
   })
   public invitedBy: BelongsTo<typeof User>
 
   @belongsTo(() => User, {
-    foreignKey: 'user_id',
+    foreignKey: 'userId',
   })
   public user: BelongsTo<typeof User>
 
   @belongsTo(() => Channel, {
-    foreignKey: 'channel_id',
+    foreignKey: 'channelId',
   })
   public channel: BelongsTo<typeof Channel>
 }

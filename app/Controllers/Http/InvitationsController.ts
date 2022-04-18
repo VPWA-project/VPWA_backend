@@ -53,7 +53,7 @@ export default class InvitationsController {
     const channel = (await Channel.find(data.channelId)) as Channel
 
     // check if user is admin if channel is private
-    if (user.id !== channel?.administrator_id && channel?.type === ChannelTypes.Private) {
+    if (user.id !== channel?.administratorId && channel?.type === ChannelTypes.Private) {
       return response.badRequest('Permission denied')
     }
 
@@ -72,11 +72,9 @@ export default class InvitationsController {
       ?.delete()
 
     // check if invited user was already invited to given channel
-    const previousInvitation = await Invitation.query()
-      .where('user_id', data.userId)
-      .where('channel_id', data.channelId)
-      .whereNull('accepted_at')
-      .first()
+    const previousInvitation = (await channel.related('invitations').query()).find(
+      (invitation) => invitation.userId === data.userId
+    )
 
     if (previousInvitation) {
       return response.badRequest('User was already invited')
@@ -148,7 +146,7 @@ export default class InvitationsController {
     const user = auth.user as User
 
     // administrator of the channel can also delete invitation
-    if (invitation.invitedById !== user.id && invitation.channel.administrator_id !== user.id) {
+    if (invitation.invitedById !== user.id && invitation.channel.administratorId !== user.id) {
       return response.badRequest('Permission denied')
     }
 

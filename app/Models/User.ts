@@ -9,8 +9,8 @@ import {
   ManyToMany,
   manyToMany,
 } from '@ioc:Adonis/Lucid/Orm'
-import { DateTime } from 'luxon'
 import { UserStatus } from 'App/types/types'
+import { DateTime } from 'luxon'
 import { v4 as uuid } from 'uuid'
 import Channel from './Channel'
 import Invitation from './Invitation'
@@ -63,17 +63,17 @@ export default class User extends BaseModel {
   }
 
   @hasMany(() => Channel, {
-    foreignKey: 'administrator_id',
+    foreignKey: 'administratorId',
   })
   public ownChannels: HasMany<typeof Channel>
 
   @hasMany(() => Invitation, {
-    foreignKey: 'user_id',
+    foreignKey: 'userId',
   })
   public receivedInvitations: HasMany<typeof Invitation>
 
   @hasMany(() => Invitation, {
-    foreignKey: 'invited_by_id',
+    foreignKey: 'invitedById',
   })
   public sendedInvitations: HasMany<typeof Invitation>
 
@@ -86,17 +86,19 @@ export default class User extends BaseModel {
   })
   public bannedChannels: ManyToMany<typeof Channel>
 
-  @hasMany(() => Message)
+  @hasMany(() => Message, {
+    foreignKey: 'userId',
+  })
   public messages: HasMany<typeof Message>
 
   @manyToMany(() => Channel, {
-    pivotForeignKey: 'kicked_user_id',
+    pivotForeignKey: 'kickedUserId',
     pivotTable: 'kicked_users',
   })
   public kicks: ManyToMany<typeof Channel>
 
   @manyToMany(() => Channel, {
-    pivotForeignKey: 'kicked_by_user_id',
+    pivotForeignKey: 'kickedByUserId',
     pivotTable: 'kicked_users',
   })
   public myKicks: ManyToMany<typeof Channel>

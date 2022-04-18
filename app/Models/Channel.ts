@@ -26,11 +26,11 @@ export default class Channel extends BaseModel {
   @column()
   public type: ChannelTypes
 
-  @column()
-  public administrator_id: string
+  @column({ columnName: 'administrator_id' })
+  public administratorId: string
 
   @belongsTo(() => User, {
-    foreignKey: 'administrator_id',
+    foreignKey: 'administratorId',
   })
   public administrator: BelongsTo<typeof User>
 
@@ -49,7 +49,7 @@ export default class Channel extends BaseModel {
   }
 
   @hasMany(() => Invitation, {
-    foreignKey: 'channel_id',
+    foreignKey: 'channelId',
   })
   public invitations: HasMany<typeof Invitation>
 
@@ -57,14 +57,14 @@ export default class Channel extends BaseModel {
   public users: ManyToMany<typeof User>
 
   @manyToMany(() => User, {
-    pivotForeignKey: 'channel_id',
+    pivotForeignKey: 'channelId',
     pivotTable: 'banned_users',
   })
   public bannedUsers: ManyToMany<typeof User>
 
   @manyToMany(() => User, {
-    pivotForeignKey: 'channel_id',
-    pivotRelatedForeignKey: 'kicked_user_id',
+    pivotForeignKey: 'channelId',
+    pivotRelatedForeignKey: 'kickedUserId',
     pivotTable: 'kicked_users',
   })
   public kickedUsers: ManyToMany<typeof User>
