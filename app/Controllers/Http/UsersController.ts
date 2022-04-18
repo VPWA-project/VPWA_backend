@@ -54,7 +54,7 @@ export default class UsersController {
   /**
    * Fetch all users
    */
-  public async index({ auth, request, response }: HttpContextContract) {
+  public async index({ auth, request, response, logger }: HttpContextContract) {
     const validationSchema = schema.create({
       page: schema.number.optional([rules.unsigned()]),
       limit: schema.number.optional([rules.range(10, 50)]),
@@ -65,6 +65,10 @@ export default class UsersController {
     const user = auth.user as User
 
     const query = User.query().where('id', '!=', user.id)
+
+    if (data.page) logger.warn(data.page.toString())
+    if (data.limit) logger.warn(data.limit.toString())
+    if (data.search) logger.warn(data.search)
 
     if (data.search) {
       query
