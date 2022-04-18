@@ -42,6 +42,8 @@ Route.group(() => {
 
   Route.get('channels', 'ChannelsController.index')
   Route.post('channels', 'ChannelsController.create')
+  Route.get('channels/:id/users', 'ChannelsController.users')
+  // Route.get('channels/:id/invitableUsers', 'ChannelsController.invitableUsers')
   Route.post('channels/:id/join', 'ChannelsController.join')
   Route.post('channels/:id/leave', 'ChannelsController.leave')
   Route.post('channels/:id/kick', 'ChannelsController.kick')

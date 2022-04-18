@@ -280,6 +280,23 @@ export default class ChannelsController {
     return response.ok({})
   }
 
+  /**
+   * Get channel users
+   */
+  public async users({ auth, params: { id }, response }: HttpContextContract) {
+    const user = auth.user as User
+
+    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
+
+    if (!channel) {
+      return response.badRequest('Channel does not exist or you are not member of the channel')
+    }
+
+    await channel.load('users')
+
+    return response.ok(channel)
+  }
+
   public async store({}: HttpContextContract) {}
 
   public async show({}: HttpContextContract) {}
