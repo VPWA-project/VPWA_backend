@@ -91,9 +91,9 @@ export default class ChannelsController {
 
     data.invitations?.forEach((userId) => {
       Invitation.create({
-        user_id: userId,
-        invited_by_id: user.id,
-        channel_id: channel.id,
+        userId: userId,
+        invitedById: user.id,
+        channelId: channel.id,
       })
     })
 
@@ -140,7 +140,7 @@ export default class ChannelsController {
     // if channel is private, check if user has valid invitation
     if (channel.type === ChannelTypes.Private) {
       const invitation = (await user.related('receivedInvitations').query()).find(
-        (invitation) => invitation.channel_id === channel.id
+        (invitation) => invitation.channelId === channel.id
       )
 
       if (!invitation) {
@@ -295,6 +295,54 @@ export default class ChannelsController {
     await channel.load('users')
 
     return response.ok(channel)
+  }
+
+  /**
+   * Get invitable users
+   */
+  public async invitableUsers({ auth, params: { id }, request, response }: HttpContextContract) {
+    const validationSchema = schema.create({
+      page: schema.number.optional([rules.unsigned()]),
+      limit: schema.number.optional([rules.range(10, 20)]),
+      search: schema.string.optional({ trim: true }),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
+
+    const user = auth.user as User
+
+    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
+
+    if (!channel) {
+      return response.badRequest('Channel does not exist or you are not member of the channel')
+    }
+
+    const query = User.query()
+      .select('users.*')
+      .joinRaw('left join channel_user on users.id = channel_user.user_id')
+      .where('users.id', '!=', user.id)
+      .andWhere((query) => {
+        query
+          .where('channel_user.channel_id', '!=', channel.id)
+          .orWhereNull('channel_user.channel_id')
+      })
+      .andWhereNotIn(
+        'users.id',
+        User.query()
+          .select('users.id')
+          .joinRaw('inner join invitations on users.id = invitations.user_id')
+          .where('invitations.channel_id', '=', channel.id)
+      )
+
+    if (data.search) {
+      query
+        .where('nickname', 'ILIKE', data.search + '%') // startswith
+        .orderBy('nickname', 'asc')
+    }
+
+    const users = await query.paginate(data.page || 1, data.limit || 10)
+
+    return response.ok(users)
   }
 
   public async store({}: HttpContextContract) {}

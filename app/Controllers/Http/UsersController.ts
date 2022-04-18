@@ -54,10 +54,10 @@ export default class UsersController {
   /**
    * Fetch all users
    */
-  public async index({ auth, request, response, logger }: HttpContextContract) {
+  public async index({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
       page: schema.number.optional([rules.unsigned()]),
-      limit: schema.number.optional([rules.range(10, 50)]),
+      limit: schema.number.optional([rules.range(10, 20)]),
       search: schema.string.optional({ trim: true }),
     })
 
@@ -66,17 +66,13 @@ export default class UsersController {
 
     const query = User.query().where('id', '!=', user.id)
 
-    if (data.page) logger.warn(data.page.toString())
-    if (data.limit) logger.warn(data.limit.toString())
-    if (data.search) logger.warn(data.search)
-
     if (data.search) {
       query
         .where('nickname', 'ILIKE', data.search + '%') // startswith
         .orderBy('nickname', 'asc')
     }
 
-    const users = await query.paginate(data.page || 1, data.limit || 50)
+    const users = await query.paginate(data.page || 1, data.limit || 10)
 
     return response.ok(users)
   }

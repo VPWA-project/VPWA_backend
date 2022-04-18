@@ -24,10 +24,8 @@ export default class InvitationsController {
       .whereNull('accepted_at')
       .orderBy('created_at', 'desc')
 
-    const sendedInvitations = invitations.filter(
-      (invitation) => invitation.invited_by_id === user.id
-    )
-    const receivedInvitations = invitations.filter((invitation) => invitation.user_id === user.id)
+    const sendedInvitations = invitations.filter((invitation) => invitation.invitedById === user.id)
+    const receivedInvitations = invitations.filter((invitation) => invitation.userId === user.id)
 
     return response.ok({
       sended: sendedInvitations,
@@ -52,7 +50,7 @@ export default class InvitationsController {
       return response.badRequest('You can not invite yourself')
     }
 
-    const channel = await Channel.find(data.channelId)
+    const channel = (await Channel.find(data.channelId)) as Channel
 
     // check if user is admin if channel is private
     if (user.id !== channel?.administrator_id && channel?.type === ChannelTypes.Private) {
@@ -60,8 +58,8 @@ export default class InvitationsController {
     }
 
     // check if user is already in given channel
-    const isUserInChannel = !!(await user.related('channels').query()).find(
-      (memberChannel) => memberChannel.id === channel?.id
+    const isUserInChannel = !!(await channel.related('users').query()).find(
+      (channelUser) => channelUser.id === data.userId
     )
 
     if (isUserInChannel) {
@@ -86,7 +84,7 @@ export default class InvitationsController {
 
     const invitation = await Invitation.create({
       ...data,
-      invited_by_id: user.id,
+      invitedById: user.id,
     })
 
     return response.created(invitation)
@@ -110,7 +108,7 @@ export default class InvitationsController {
 
     const user = auth.user as User
 
-    if (invitation.user_id !== user.id) {
+    if (invitation.userId !== user.id) {
       return response.badRequest('Invitation does not belongs to you')
     }
 
@@ -120,7 +118,7 @@ export default class InvitationsController {
 
     if (data.status === InvitationStatus.Accept) {
       // add user to channel
-      await user.related('channels').attach([invitation.channel_id])
+      await user.related('channels').attach([invitation.channelId])
     }
 
     // TODO: add resolve status to invitation schema or delete after
@@ -150,7 +148,7 @@ export default class InvitationsController {
     const user = auth.user as User
 
     // administrator of the channel can also delete invitation
-    if (invitation.invited_by_id !== user.id && invitation.channel.administrator_id !== user.id) {
+    if (invitation.invitedById !== user.id && invitation.channel.administrator_id !== user.id) {
       return response.badRequest('Permission denied')
     }
 

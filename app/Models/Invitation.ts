@@ -9,13 +9,13 @@ export default class Invitation extends BaseModel {
   public id: string
 
   @column()
-  public user_id: string
+  public userId: string
 
   @column()
-  public invited_by_id: string
+  public invitedById: string
 
   @column()
-  public channel_id: string
+  public channelId: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
