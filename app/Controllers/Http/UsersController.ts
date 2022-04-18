@@ -57,16 +57,14 @@ export default class UsersController {
   public async index({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
       page: schema.number.optional([rules.unsigned()]),
-      limit: schema.number.optional([rules.range(10, 50)]),
+      limit: schema.number.optional([rules.range(10, 20)]),
       search: schema.string.optional({ trim: true }),
     })
 
     const data = await request.validate({ schema: validationSchema })
     const user = auth.user as User
 
-    const query = User.query()
-      .select('id', 'email', 'firstname', 'lastname', 'nickname')
-      .where('id', '!=', user.id)
+    const query = User.query().where('id', '!=', user.id)
 
     if (data.search) {
       query
@@ -74,7 +72,7 @@ export default class UsersController {
         .orderBy('nickname', 'asc')
     }
 
-    const users = await query.paginate(data.page || 1, data.limit || 50)
+    const users = await query.paginate(data.page || 1, data.limit || 10)
 
     return response.ok(users)
   }

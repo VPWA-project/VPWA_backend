@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
 import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import { DateTime } from 'luxon'
 import Channel from './Channel'
 import User from './User'
 
@@ -7,10 +7,10 @@ export default class Message extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
-  @column()
+  @column({ columnName: 'user_id' })
   public userId: string
 
-  @column()
+  @column({ columnName: 'channel_id' })
   public channelId: string
 
   @column()

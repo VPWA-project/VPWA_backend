@@ -2,6 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Channel from 'App/Models/Channel'
+import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
 
 export enum ChannelTypes {
@@ -41,14 +42,22 @@ export default class ChannelsController {
    * Creates new channel
    */
   public async create({ auth, request, response }: HttpContextContract) {
+    const user = auth.user as User
+
     const validationSchema = schema.create({
       name: schema.string({ trim: true }),
       type: schema.enum(Object.values(ChannelTypes)),
+      invitations: schema.array
+        .optional([rules.minLength(1), rules.distinct('*')])
+        .members(
+          schema.string({ trim: true }, [
+            rules.notIn([user.id]),
+            rules.exists({ table: 'users', column: 'id' }),
+          ])
+        ),
     })
 
     const data = await request.validate({ schema: validationSchema })
-
-    const user = auth.user as User
 
     // check if channel with given name already exist
     const existingChannel = await Channel.query()
@@ -70,13 +79,25 @@ export default class ChannelsController {
       })
     }
 
+    // TODO: transaction
+
     const channel = await Channel.create({
-      ...(data as Channel),
+      ...({ name: data.name, type: data.type } as Channel),
       administratorId: auth.user?.id as string,
     })
 
     // join administrator in the channel
     await user.related('channels').attach([channel.id])
+
+    data.invitations?.forEach((userId) => {
+      Invitation.create({
+        userId: userId,
+        invitedById: user.id,
+        channelId: channel.id,
+      })
+    })
+
+    await channel.load('administrator')
 
     return response.created(channel)
   }
@@ -257,6 +278,71 @@ export default class ChannelsController {
     await userToBeKicked.related('channels').detach([channel.id])
 
     return response.ok({})
+  }
+
+  /**
+   * Get channel users
+   */
+  public async users({ auth, params: { id }, response }: HttpContextContract) {
+    const user = auth.user as User
+
+    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
+
+    if (!channel) {
+      return response.badRequest('Channel does not exist or you are not member of the channel')
+    }
+
+    await channel.load('users')
+
+    return response.ok(channel)
+  }
+
+  /**
+   * Get invitable users
+   */
+  public async invitableUsers({ auth, params: { id }, request, response }: HttpContextContract) {
+    const validationSchema = schema.create({
+      page: schema.number.optional([rules.unsigned()]),
+      limit: schema.number.optional([rules.range(10, 20)]),
+      search: schema.string.optional({ trim: true }),
+    })
+
+    const data = await request.validate({ schema: validationSchema })
+
+    const user = auth.user as User
+
+    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
+
+    if (!channel) {
+      return response.badRequest('Channel does not exist or you are not member of the channel')
+    }
+
+    const query = User.query()
+      .select('users.*')
+      .joinRaw('left join channel_user on users.id = channel_user.user_id')
+      .where('users.id', '!=', user.id)
+      .andWhere((query) => {
+        query
+          .where('channel_user.channel_id', '!=', channel.id)
+          .orWhereNull('channel_user.channel_id')
+      })
+      .andWhereNotIn(
+        'users.id',
+        User.query()
+          .select('users.id')
+          .joinRaw('inner join invitations on users.id = invitations.user_id')
+          .where('invitations.channel_id', '=', channel.id)
+      )
+
+    if (data.search) {
+      query
+        .where('nickname', 'ILIKE', data.search + '%') // startswith
+        .orderBy('nickname', 'asc')
+    }
+
+    const users = await query.paginate(data.page || 1, data.limit || 10)
+
+    return response.ok(users)
   }
 
   public async store({}: HttpContextContract) {}
