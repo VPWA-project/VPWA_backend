@@ -24,13 +24,20 @@ export default class ChannelsController {
       limit: schema.number.optional([rules.range(10, 50)]),
     })
 
+    let searchText = request.all()['searchText']
+    let userId = request.all()['userId']
     const data = await request.validate({ schema: validationSchema })
 
     // TODO: filter out banned channels and channels where user is already in
-    // TODO: allow search by name option
+    // TODO: allow search by name option - DONE
+    let users = await Database.rawQuery('SELECT * FROM banned_users', {
+      id: userId,
+    })
+    console.log(users.rows)
 
     const channels = await Channel.query()
       .where('type', ChannelTypes.Public)
+      .where('name', searchText)
       .whereNull('deleted_at')
       .paginate(data.page || 1, data.limit || 50)
 
