@@ -1,8 +1,7 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder'
 import { ChannelTypes } from 'App/Controllers/Http/ChannelsController'
-import Message from 'App/Models/Message'
 import User from 'App/Models/User'
-import { ChannelFactory, MessageFactory, UserFactory } from 'Database/factories'
+import { ChannelFactory, MessageFactory } from 'Database/factories'
 import { DateTime } from 'luxon'
 
 export default class ChannelSeeder extends BaseSeeder {
@@ -58,7 +57,6 @@ export default class ChannelSeeder extends BaseSeeder {
     if (adminsChannels) {
       await adminUser?.related('channels').attach(adminsChannels.map((channel) => channel.id))
       await johnUser?.related('channels').attach(adminsChannels.map((channel) => channel.id))
-      await frankUser?.related('channels').attach(adminsChannels.map((channel) => channel.id))
     }
 
     if (adminsChannels && johnUser)
@@ -67,15 +65,11 @@ export default class ChannelSeeder extends BaseSeeder {
           const startTime = new Date(2022, 4, 1)
           const endTime = new Date()
 
-          const time = new Date(
-            startTime.getTime() + Math.random() * (endTime.getTime() - startTime.getTime())
-          )
-
           await MessageFactory.merge({
             channelId: channel.id,
             userId: johnUser.id,
-            createdAt: DateTime.fromJSDate(time),
-            updatedAt: DateTime.fromJSDate(time),
+            createdAt: DateTime.fromJSDate(this.getRandomDateFromInterval(startTime, endTime)),
+            updatedAt: DateTime.fromJSDate(this.getRandomDateFromInterval(startTime, endTime)),
           }).create()
         })
       })
@@ -84,6 +78,10 @@ export default class ChannelSeeder extends BaseSeeder {
     await ChannelFactory.with('administrator').createMany(3)
 
     // channel with 5 users
-    await ChannelFactory.with('administrator').with('users', 5).createMany(3)
+    await ChannelFactory.with('administrator').with('users', 5).with('bannedUsers', 2).createMany(3)
+  }
+
+  private getRandomDateFromInterval(startTime: Date, endTime: Date) {
+    return new Date(startTime.getTime() + Math.random() * (endTime.getTime() - startTime.getTime()))
   }
 }
