@@ -32,7 +32,6 @@ export default class ChannelsController {
 
     const channels = await Channel.query()
       .where('type', ChannelTypes.Public)
-      .whereNull('deleted_at')
       .paginate(data.page || 1, data.limit || 50)
 
     return response.ok(channels)
@@ -60,10 +59,7 @@ export default class ChannelsController {
     const data = await request.validate({ schema: validationSchema })
 
     // check if channel with given name already exist
-    const existingChannel = await Channel.query()
-      .where('name', data.name)
-      .whereNull('deleted_at')
-      .first()
+    const existingChannel = await Channel.query().where('name', data.name).first()
 
     // TODO: if last message was 30 days ago, mark channel as deleted and create channel with the same name
 
@@ -124,10 +120,6 @@ export default class ChannelsController {
       return response.badRequest('Channel does not exist')
     }
 
-    if (channel.deletedAt !== null) {
-      return response.badRequest('Channel is deleted')
-    }
-
     // check if the user was not banned
     const isUserBanned = !!(await user.related('bannedChannels').query()).find(
       (bannedChannel) => bannedChannel.id === id
@@ -165,11 +157,6 @@ export default class ChannelsController {
 
     if (!channel) {
       return response.badRequest('Channel does not exist or you are not member of the channel')
-    }
-
-    // check if the channel exists
-    if (channel.deletedAt !== null) {
-      return response.badRequest('Channel is deleted')
     }
 
     // check if the user is admin of the channel
@@ -318,7 +305,7 @@ export default class ChannelsController {
     }
 
     const query = User.query()
-      .select('users.*')
+      .distinct('users.*')
       .joinRaw('left join channel_user on users.id = channel_user.user_id')
       .where('users.id', '!=', user.id)
       .andWhere((query) => {

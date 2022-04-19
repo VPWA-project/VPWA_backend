@@ -40,9 +40,6 @@ export default class Channel extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @column.dateTime({ serializeAs: null })
-  public deletedAt: DateTime
-
   @beforeCreate()
   public static async createUUID(user: Channel) {
     user.id = uuid()
@@ -57,14 +54,14 @@ export default class Channel extends BaseModel {
   public users: ManyToMany<typeof User>
 
   @manyToMany(() => User, {
-    pivotForeignKey: 'channelId',
+    pivotForeignKey: 'channel_id',
     pivotTable: 'banned_users',
   })
   public bannedUsers: ManyToMany<typeof User>
 
   @manyToMany(() => User, {
-    pivotForeignKey: 'channelId',
-    pivotRelatedForeignKey: 'kickedUserId',
+    pivotForeignKey: 'channel_id',
+    pivotRelatedForeignKey: 'kicked_user_id',
     pivotTable: 'kicked_users',
   })
   public kickedUsers: ManyToMany<typeof User>

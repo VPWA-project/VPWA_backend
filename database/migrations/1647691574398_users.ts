@@ -11,9 +11,7 @@ export default class UsersSchema extends BaseSchema {
       table.string('firstname', 255).notNullable()
       table.string('lastname', 255).notNullable()
       table.string('nickname', 255).notNullable().unique()
-      table.enum('status', ['ONLINE', 'DND', 'OFFLINE']).defaultTo('ONLINE')
       table.boolean('only_notifications').defaultTo(false)
-      table.string('remember_me_token').nullable()
 
       /**
        * Uses timestampz for PostgreSQL and DATETIME2 for MSSQL
