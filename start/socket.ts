@@ -11,8 +11,11 @@ import Ws from '@ioc:Ruby184/Socket.IO/Ws'
 
 Ws.namespace('/')
   .connected('ActivityController.onConnected')
-  .on('invitation:send', 'ActivityController.createInvitation')
   .disconnected('ActivityController.onDisconnected')
+
+Ws.namespace('invitations')
+  .connected('InvitationsController.onConnected')
+  .on('invitation:create', 'InvitationsController.createInvitation')
 
 // this is dynamic namespace, in controller methods we can use params.name
 Ws.namespace('channels/:name')
