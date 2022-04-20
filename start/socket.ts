@@ -13,6 +13,10 @@ Ws.namespace('/')
   .connected('ActivityController.onConnected')
   .disconnected('ActivityController.onDisconnected')
 
+Ws.namespace('invitations')
+  .connected('InvitationsController.onConnected')
+  .on('invitation:create', 'InvitationsController.createInvitation')
+
 // this is dynamic namespace, in controller methods we can use params.name
 Ws.namespace('channels/:name')
   // .middleware('channel') // check if user can join given channel

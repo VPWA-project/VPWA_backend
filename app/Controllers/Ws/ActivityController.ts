@@ -1,14 +1,14 @@
 import { WsContextContract } from '@ioc:Ruby184/Socket.IO/WsContext'
 import User from 'App/Models/User'
 
-export default class ActivityController {
-  private getUserRoom(user: User): string {
-    return `user:${user.id}`
-  }
+export const getUserRoom = (user: User): string => {
+  return `user:${user.id}`
+}
 
+export default class ActivityController {
   public async onConnected({ socket, auth, logger }: WsContextContract) {
     // all connections for the same authenticated user will be in the room
-    const room = this.getUserRoom(auth.user!)
+    const room = getUserRoom(auth.user!)
     const userSockets = await socket.in(room).allSockets()
 
     // this is first connection for given user
@@ -37,7 +37,7 @@ export default class ActivityController {
   }
 
   public async onDisconnected({ socket, auth, logger }: WsContextContract, reason: string) {
-    const room = this.getUserRoom(auth.user!)
+    const room = getUserRoom(auth.user!)
     const userSockets = await socket.in(room).allSockets()
 
     // user is disconnected

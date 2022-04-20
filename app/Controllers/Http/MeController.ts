@@ -56,7 +56,7 @@ export default class MeController {
     const invitations = await user
       .related('receivedInvitations')
       .query()
-      .preload('channel')
+      .preload('channel', (channel) => channel.preload('administrator'))
       .preload('invitedBy')
 
     return response.ok(invitations)
