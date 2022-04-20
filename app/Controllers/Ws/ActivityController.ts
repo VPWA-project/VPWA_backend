@@ -9,10 +9,13 @@ export default class ActivityController {
   public async onConnected({ socket, auth, logger }: WsContextContract) {
     // all connections for the same authenticated user will be in the room
     const room = getUserRoom(auth.user!)
+    console.log('Room: ' + room)
     const userSockets = await socket.in(room).allSockets()
+    console.log(userSockets)
 
     // this is first connection for given user
     if (userSockets.size === 0) {
+      console.log('Hello')
       socket.broadcast.emit('user:online', auth.user)
     }
 
@@ -47,5 +50,9 @@ export default class ActivityController {
     }
 
     logger.info('websocket disconnected', reason)
+  }
+
+  public async changeStatus({ socket, auth }: WsContextContract, status: string) {
+    socket.emit('user:receiveStatus', { ...(auth.user?.serialize() as User), status })
   }
 }
