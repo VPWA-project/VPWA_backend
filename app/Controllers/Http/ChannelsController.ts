@@ -28,18 +28,36 @@ export default class ChannelsController {
     let searchText = request.all()['searchText']
     let userId = request.all()['userId']
     const data = await request.validate({ schema: validationSchema })
-
     // TODO: filter out banned channels and channels where user is already in
     // TODO: allow search by name option - DONE
-    let users = await Database.rawQuery('SELECT * FROM banned_users', {
-      id: userId,
+
+    let usersBannedChannels = await Database.rawQuery(
+      'SELECT * FROM banned_users WHERE user_id=:id',
+      {
+        id: userId,
+      }
+    )
+    usersBannedChannels = usersBannedChannels.rows
+
+    let usersJoinedChannels = await Database.rawQuery(
+      'SELECT * FROM channel_user WHERE user_id=:id',
+      {
+        id: userId,
+      }
+    )
+    usersJoinedChannels = usersJoinedChannels.rows
+
+    let usersChannels = [...usersBannedChannels, ...usersJoinedChannels]
+    const usersChannelsId: string[] = []
+
+    usersChannels.forEach((channel) => {
+      usersChannelsId.push(channel.channel_id)
     })
-    console.log(users.rows)
 
     const channels = await Channel.query()
+      .whereNotIn('id', usersChannelsId)
       .where('type', ChannelTypes.Public)
-      .where('name', searchText)
-      .whereNull('deleted_at')
+      .where('name', 'ILIKE', searchText + '%')
       .paginate(data.page || 1, data.limit || 50)
 
     return response.ok(channels)
