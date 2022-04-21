@@ -285,4 +285,15 @@ export default class ChannelsController {
 
     return response.noContent()
   }
+
+  /**
+   * Fetch info about channel
+   */
+  public async getChannel({ params: { id } }: HttpContextContract) {
+    const channel = await Channel.findOrFail(id)
+
+    await channel.load('administrator')
+
+    return channel
+  }
 }
