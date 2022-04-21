@@ -62,14 +62,18 @@ export default class ChannelSeeder extends BaseSeeder {
     if (adminsChannels && johnUser)
       adminsChannels?.forEach(async (channel) => {
         Array.from({ length: 10 }).forEach(async () => {
-          const startTime = new Date(2022, 4, 1)
+          const startTime = new Date(2021, 4, 1)
           const endTime = new Date()
+
+          const createdAt = this.getRandomDateFromInterval(startTime, endTime)
+
+          console.log(createdAt)
 
           await MessageFactory.merge({
             channelId: channel.id,
             userId: johnUser.id,
-            createdAt: DateTime.fromJSDate(this.getRandomDateFromInterval(startTime, endTime)),
-            updatedAt: DateTime.fromJSDate(this.getRandomDateFromInterval(startTime, endTime)),
+            createdAt: DateTime.fromJSDate(createdAt),
+            updatedAt: DateTime.fromJSDate(createdAt),
           }).create()
         })
       })
@@ -81,7 +85,11 @@ export default class ChannelSeeder extends BaseSeeder {
     await ChannelFactory.with('administrator').with('users', 5).with('bannedUsers', 2).createMany(3)
   }
 
-  private getRandomDateFromInterval(startTime: Date, endTime: Date) {
-    return new Date(startTime.getTime() + Math.random() * (endTime.getTime() - startTime.getTime()))
+  private getRandomDateFromInterval(startDate: Date, endDate: Date) {
+    // https://javascriptf1.com/snippet/generate-random-date-in-a-range-with-javascript
+    const minValue = startDate.getTime()
+    const maxValue = endDate.getTime()
+    const timestamp = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue)
+    return new Date(timestamp)
   }
 }
