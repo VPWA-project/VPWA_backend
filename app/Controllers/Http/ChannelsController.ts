@@ -10,11 +10,6 @@ export enum ChannelTypes {
   Private = 'PRIVATE',
 }
 
-export enum KickType {
-  Kick = 'KICK',
-  Revoke = 'REVOKE',
-}
-
 export default class ChannelsController {
   /**
    * Fetch public channels
@@ -196,99 +191,6 @@ export default class ChannelsController {
       // leave the channel
       await user.related('channels').detach([channel.id])
     }
-
-    return response.ok({})
-  }
-
-  public async kick({ auth, request, response, params: { id } }: HttpContextContract) {
-    const validationSchema = schema.create({
-      method: schema.enum(Object.values(KickType)),
-      userId: schema.string({ trim: true }, [rules.exists({ table: 'users', column: 'id' })]),
-    })
-
-    // TODO: add to migration
-
-    const data = await request.validate({ schema: validationSchema })
-
-    const user = auth.user as User
-
-    // check if user wants to kick himself
-    if (user.id === data.userId) {
-      return response.badRequest('You can not kick/revoke yourself')
-    }
-
-    // check if the channel exist
-    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
-
-    // check if kicker is in the channel
-    if (!channel) {
-      return response.badRequest('You are not in the channel')
-    }
-
-    const isKickerAdmin = user.id === channel.administratorId
-
-    // check if kicker has permisions
-    if (data.method === KickType.Revoke && !isKickerAdmin) {
-      return response.badRequest('You must be administrator of the channel to revoke users')
-    }
-
-    // kicker must be admin to kick in private channels
-    if (channel.type === ChannelTypes.Private && !isKickerAdmin) {
-      return response.badRequest('Permission denied')
-    }
-
-    // check if user is in the channel
-    const userToBeKicked = (await channel.related('users').query()).find(
-      (user) => user.id === data.userId
-    )
-
-    if (!userToBeKicked) {
-      return response.badRequest('User is not channel member')
-    }
-
-    if (data.method === KickType.Kick) {
-      const numberOfKicks = (
-        await channel.related('kickedUsers').query().where('kicked_user_id', userToBeKicked.id)
-      ).length
-
-      if (isKickerAdmin) {
-        // ban
-        await userToBeKicked.related('bannedChannels').attach([channel.id])
-
-        // remove kicks
-        await channel.related('kickedUsers').detach([userToBeKicked.id])
-      } else {
-        // check if the user has already kicked the user before
-        const wasUserKickedByKickerBefore = !!(await channel
-          .related('kickedUsers')
-          .query()
-          .where('kicked_user_id', userToBeKicked.id)
-          .where('kicked_by_user_id', user.id)
-          .first())
-
-        if (!wasUserKickedByKickerBefore) {
-          // kick
-          await Database.table('kicked_users').insert({
-            kicked_user_id: userToBeKicked.id,
-            kicked_by_user_id: user.id,
-            channel_id: channel.id,
-          })
-        } else {
-          return response.badRequest('You have already kicked the user')
-        }
-
-        // 3x kick = ban
-        if (numberOfKicks + 1 >= 3) {
-          // ban
-          await userToBeKicked.related('bannedChannels').attach([channel.id])
-          // remove kicks
-          await channel.related('kickedUsers').detach([userToBeKicked.id])
-        }
-      }
-    }
-
-    // remove channel
-    await userToBeKicked.related('channels').detach([channel.id])
 
     return response.ok({})
   }
