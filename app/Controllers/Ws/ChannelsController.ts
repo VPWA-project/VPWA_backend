@@ -10,7 +10,7 @@ export enum KickType {
 
 export default class ChannelsController {
   public async kick(
-    { auth, socket, params: { name } }: WsContextContract,
+    { auth, socket, params: { name }, logger }: WsContextContract,
     data: { method: KickType; userId: string }
   ) {
     // TODO: add to migration
@@ -33,6 +33,11 @@ export default class ChannelsController {
     }
 
     const isKickerAdmin = user.id === channel.administratorId
+
+    // check if not kicking admin
+    if (data.userId === channel.administratorId) {
+      throw new Error('Permission denied')
+    }
 
     // check if kicker has permisions
     if (data.method === KickType.Revoke && !isKickerAdmin) {
