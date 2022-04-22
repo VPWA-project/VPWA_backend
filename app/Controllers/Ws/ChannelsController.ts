@@ -34,6 +34,11 @@ export default class ChannelsController {
 
     const isKickerAdmin = user.id === channel.administratorId
 
+    // check if not kicking admin
+    if (data.userId === channel.administratorId) {
+      throw new Error('Permission denied')
+    }
+
     // check if kicker has permisions
     if (data.method === KickType.Revoke && !isKickerAdmin) {
       throw new Error('You must be administrator of the channel to revoke users')

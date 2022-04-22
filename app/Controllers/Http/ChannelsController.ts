@@ -126,7 +126,7 @@ export default class ChannelsController {
     const user = auth.user as User
 
     // check if user is already in the channel
-    const alreadyInChannel = !(await user.related('channels').query()).find(
+    const alreadyInChannel = (await user.related('channels').query()).find(
       (channel) => channel.id === id
     )
 
@@ -163,6 +163,8 @@ export default class ChannelsController {
 
     // join channel
     await user.related('channels').attach([channel.id])
+
+    await channel.load('administrator')
 
     return response.ok(channel)
   }
