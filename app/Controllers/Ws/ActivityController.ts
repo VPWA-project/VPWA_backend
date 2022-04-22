@@ -9,21 +9,21 @@ export default class ActivityController {
   public async onConnected({ socket, auth, logger }: WsContextContract) {
     // all connections for the same authenticated user will be in the room
     const room = getUserRoom(auth.user!)
-    console.log('Room: ' + room)
     const userSockets = await socket.in(room).allSockets()
-    console.log(userSockets)
 
     // this is first connection for given user
     if (userSockets.size === 0) {
-      console.log('Hello')
       socket.broadcast.emit('user:online', auth.user)
     }
+
+    const status = userSockets.size > 0 ? userSockets[0].data.status : 'ONLINE'
 
     // add this socket to user room
     socket.join(room)
     // add userId to data shared between Socket.IO servers
     // https://socket.io/docs/v4/server-api/#namespacefetchsockets
     socket.data.userId = auth.user!.id
+    socket.data.status = status
 
     const allSockets = await socket.nsp.except(room).fetchSockets()
     const onlineIds = new Set<string>()
@@ -33,6 +33,9 @@ export default class ActivityController {
     }
 
     const onlineUsers = await User.findMany([...onlineIds])
+    onlineUsers.forEach((user) => {
+      user.status = allSockets.find((socket) => socket.data.userId === user.id)?.data.status
+    })
 
     socket.emit('user:list', onlineUsers)
 
@@ -53,6 +56,7 @@ export default class ActivityController {
   }
 
   public async changeStatus({ socket, auth }: WsContextContract, status: string) {
-    socket.emit('user:receiveStatus', { ...(auth.user?.serialize() as User), status })
+    socket.data.status = status
+    socket.broadcast.emit('user:receiveStatus', { ...(auth.user?.serialize() as User), status })
   }
 }
