@@ -9,12 +9,12 @@ export default class ChannelSeeder extends BaseSeeder {
     const johnUser = await User.findBy('firstname', 'John')
 
     const johnsPublic = await johnUser?.related('ownChannels').create({
-      name: "John's public channel",
+      name: "John's_public_channel",
       type: ChannelTypes.Public,
     })
 
     const johnsPrivate = await johnUser?.related('ownChannels').create({
-      name: "John's private channel",
+      name: "John's_private_channel",
       type: ChannelTypes.Private,
     })
 
@@ -27,7 +27,7 @@ export default class ChannelSeeder extends BaseSeeder {
       await frankUser?.related('channels').attach([johnsPublic.id, johnsPrivate.id])
 
     const franksPublic = await frankUser?.related('ownChannels').create({
-      name: "Frank's channel",
+      name: "Frank's_channel",
       type: ChannelTypes.Public,
     })
 
