@@ -39,4 +39,5 @@ Ws.middleware.register([() => import('App/Middleware/Auth')])
 */
 Ws.middleware.registerNamed({
   // auth: () => import('App/Middleware/Auth')
+  channel: () => import('App/Middleware/Channel'),
 })
