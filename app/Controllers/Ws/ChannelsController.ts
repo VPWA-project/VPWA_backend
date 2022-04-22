@@ -10,7 +10,7 @@ export enum KickType {
 
 export default class ChannelsController {
   public async kick(
-    { auth, socket, params: { name }, logger }: WsContextContract,
+    { auth, socket, params: { name } }: WsContextContract,
     data: { method: KickType; userId: string }
   ) {
     // TODO: add to migration
