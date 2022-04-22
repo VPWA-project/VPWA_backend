@@ -67,8 +67,6 @@ export default class ChannelSeeder extends BaseSeeder {
 
           const createdAt = this.getRandomDateFromInterval(startTime, endTime)
 
-          console.log(createdAt)
-
           await MessageFactory.merge({
             channelId: channel.id,
             userId: johnUser.id,
