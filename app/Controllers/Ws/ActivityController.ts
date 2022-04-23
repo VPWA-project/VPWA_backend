@@ -38,10 +38,9 @@ export default class ActivityController {
 
     const onlineUsers = await User.findMany([...onlineIds])
     const dndUsers = await User.findMany([...dndIds])
-    //console.log('ONLINE users: ' + onlineUsers)
-    //console.log('DND users: ' + dndUsers)
 
     socket.emit('user:list', onlineUsers, dndUsers)
+    socket.emit('user:online', auth.user)
 
     logger.info('new websocket connection')
   }
@@ -61,6 +60,10 @@ export default class ActivityController {
 
   public async changeStatus({ socket, auth }: WsContextContract, status: string) {
     socket.data.userStatus = status
-    socket.broadcast.emit('user:receiveStatus', { ...(auth.user?.serialize() as User), status })
+    if (status === UserStatus.OFFLINE) {
+      socket.broadcast.emit('user:offline', auth.user)
+    } else {
+      socket.broadcast.emit('user:receiveStatus', { ...(auth.user?.serialize() as User), status })
+    }
   }
 }
