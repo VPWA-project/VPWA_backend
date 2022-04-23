@@ -2,6 +2,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import { WsContextContract } from '@ioc:Ruby184/Socket.IO/WsContext'
 import User from 'App/Models/User'
 import { ChannelTypes } from '../Http/ChannelsController'
+import { getUserRoom } from './ActivityController'
 
 export enum KickType {
   Kick = 'KICK',
@@ -9,6 +10,12 @@ export enum KickType {
 }
 
 export default class ChannelsController {
+  public async onConnected({ socket, auth }: WsContextContract) {
+    const userRoom = getUserRoom(auth.user!)
+
+    socket.join(userRoom)
+  }
+
   public async kick(
     { auth, socket, params: { name } }: WsContextContract,
     data: { method: KickType; userId: string }
@@ -105,6 +112,43 @@ export default class ChannelsController {
     socket.broadcast.emit('user:receiveKick', {
       userId: userToBeKicked.id,
       channelName: channel.name,
+    })
+  }
+
+  /**
+   * Leaves a channel
+   */
+  public async leave({ auth, socket, params: { name } }: WsContextContract) {
+    const user = auth.user as User
+
+    // check if the user is in the channel
+    const channel = (await user.related('channels').query()).find(
+      (channel) => channel.name === name
+    )
+
+    if (!channel) throw new Error('Channel does not exist or you are not member of the channel')
+
+    // check if the user is admin of the channel
+    if (channel.administratorId === user.id) {
+      // delete the channel
+      await channel.delete()
+
+      // TODO: disconnect all sockets
+
+      socket.broadcast.emit('channel:delete', channel)
+    } else {
+      // leave the channel
+      await user.related('channels').detach([channel.id])
+    }
+
+    socket.nsp.emit('channel:leave', { user, channel })
+
+    // disconnect all user's sockets
+    const userRoom = getUserRoom(user)
+    const userSockets = await socket.in(userRoom).fetchSockets()
+
+    userSockets.forEach((socket) => {
+      socket.disconnect()
     })
   }
 }
