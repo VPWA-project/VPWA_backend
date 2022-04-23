@@ -211,7 +211,7 @@ export default class ChannelsController {
 
     await channel.load('users')
 
-    return response.ok(channel)
+    return response.ok(channel.users)
   }
 
   /**
