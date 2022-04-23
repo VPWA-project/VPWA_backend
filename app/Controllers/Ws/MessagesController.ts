@@ -23,6 +23,20 @@ export default class MessagesController {
     return message
   }
 
+  public async sendTypingMessage(
+    { params: { name }, socket, auth }: WsContextContract,
+    message: string
+  ) {
+    const user = auth.user!
+
+    socket.broadcast.emit('channel:receiveTyping', {
+      content: message,
+      author: user,
+      channel: name,
+    })
+    return message
+  }
+
   public async index({}: HttpContextContract) {}
 
   /**
