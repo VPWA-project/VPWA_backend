@@ -1,4 +1,13 @@
 declare module '@ioc:Repositories/MessagesRepository' {
+  export interface User {
+    id: string
+    email: string
+    firstname: string
+    nickname: string
+    lastname: string
+    createdAt: string
+    updatedAt: string
+  }
   export interface SerializedMessage {
     userId: string
     message: string
@@ -6,12 +15,8 @@ declare module '@ioc:Repositories/MessagesRepository' {
     createdAt: string
     updatedAt: string
     id: string
-    user: {
-      id: string
-      email: string
-      createdAt: string
-      updatedAt: string
-    }
+    user: User
+    tags: User[]
   }
 
   export interface PageMetaData {
@@ -37,7 +42,7 @@ declare module '@ioc:Repositories/MessagesRepository' {
       page?: number,
       limit?: number
     ): Promise<PaginatedResponse<SerializedMessage[]>>
-    create(id: string, userId: string, content: string): Promise<SerializedMessage>
+    create(id: string, userId: string, content: string, tags?: string[]): Promise<SerializedMessage>
   }
 
   const MessagesRepository: MessagesRepositoryContract

@@ -15,8 +15,12 @@ export default class MessagesController {
     return this.messageRepository.getMessages(params.name, page, limit)
   }
 
-  public async addMessage({ params, socket, auth }: WsContextContract, content: string) {
-    const message = await this.messageRepository.create(params.name, auth.user!.id, content)
+  public async addMessage(
+    { params, socket, auth }: WsContextContract,
+    content: string,
+    tags?: string[]
+  ) {
+    const message = await this.messageRepository.create(params.name, auth.user!.id, content, tags)
 
     socket.broadcast.emit('message', message)
 
