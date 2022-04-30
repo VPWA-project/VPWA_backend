@@ -60,6 +60,7 @@ export default class ActivityController {
 
   public async changeStatus({ socket, auth }: WsContextContract, status: string) {
     socket.data.userStatus = status
+
     if (status === UserStatus.OFFLINE) {
       socket.broadcast.emit('user:offline', auth.user)
     } else {
