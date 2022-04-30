@@ -65,7 +65,7 @@ export default class ChannelsController {
     const user = auth.user as User
 
     const validationSchema = schema.create({
-      name: schema.string({ trim: true }),
+      name: schema.string({ trim: true }, [rules.regex(/^[a-zA-Z0-9]+$/)]),
       type: schema.enum(Object.values(ChannelTypes)),
       invitations: schema.array
         .optional([rules.minLength(1), rules.distinct('*')])
@@ -77,7 +77,10 @@ export default class ChannelsController {
         ),
     })
 
-    const data = await request.validate({ schema: validationSchema })
+    const data = await request.validate({
+      schema: validationSchema,
+      messages: { 'name.regex': 'The name can only contain alphanumeric characters' },
+    })
 
     // check if channel with given name already exist
     const existingChannel = await Channel.query().where('name', data.name).first()
