@@ -14,6 +14,8 @@ export default class ChannelsController {
     const userRoom = getUserRoom(auth.user!)
 
     socket.join(userRoom)
+
+    socket.broadcast.emit('channel:join', auth.user)
   }
 
   public async kick(
