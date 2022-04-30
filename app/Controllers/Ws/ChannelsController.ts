@@ -15,7 +15,11 @@ export default class ChannelsController {
 
     socket.join(userRoom)
 
-    socket.broadcast.emit('channel:join', auth.user)
+    socket.broadcast.emit('channel:connect', auth.user)
+  }
+
+  public async onDisconnected({ socket, auth }: WsContextContract) {
+    socket.broadcast.emit('channel:disconnect', auth.user)
   }
 
   public async kick(
