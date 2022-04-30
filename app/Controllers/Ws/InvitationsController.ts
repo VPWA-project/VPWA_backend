@@ -17,15 +17,17 @@ export default class InvitationsController {
    */
   public async createInvitation(
     { socket, auth }: WsContextContract,
-    data: { channelId: string; userId: string }
+    data: { channelId: string; userId?: string; nickname?: string }
   ) {
     const channel = await Channel.findOrFail(data.channelId)
-    const invitedUser = await User.findOrFail(data.userId)
+    const invitedUser =
+      (data.userId ? await User.find(data.userId) : null) ||
+      (await User.findByOrFail('nickname', data.nickname))
 
     const user = auth.user as User
 
     // check if user is not inviting himself
-    if (user.id === data.userId) {
+    if (user.id === invitedUser.id) {
       throw new Error('You can not invite yourself')
     }
 
@@ -36,7 +38,7 @@ export default class InvitationsController {
 
     // check if user is already in given channel
     const isUserInChannel = !!(await channel.related('users').query()).find(
-      (channelUser) => channelUser.id === data.userId
+      (channelUser) => channelUser.id === invitedUser.id
     )
 
     if (isUserInChannel) {
@@ -50,7 +52,7 @@ export default class InvitationsController {
 
     // check if invited user was already invited to given channel
     const previousInvitation = (await channel.related('invitations').query()).find(
-      (invitation) => invitation.userId === data.userId
+      (invitation) => invitation.userId === invitedUser.id
     )
 
     if (previousInvitation) {
@@ -58,7 +60,8 @@ export default class InvitationsController {
     }
 
     const invitation = await Invitation.create({
-      ...data,
+      channelId: channel.id,
+      userId: invitedUser.id,
       invitedById: user.id,
     })
 
