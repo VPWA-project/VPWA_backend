@@ -17,6 +17,7 @@ export default class MessagesRepository implements MessagesRepositoryContract {
     const messages = await Message.query()
       .where('channel_id', channel.id)
       .preload('user')
+      .preload('tags')
       .orderBy('created_at', 'desc')
       .paginate(page || 1, limit || 10)
 
@@ -26,10 +27,24 @@ export default class MessagesRepository implements MessagesRepositoryContract {
     }
   }
 
-  public async create(id: string, userId: string, content: string): Promise<SerializedMessage> {
+  public async create(
+    id: string,
+    userId: string,
+    content: string,
+    tags?: string[]
+  ): Promise<SerializedMessage> {
     const channel = await Channel.query().where('name', id).firstOrFail()
     const message = await channel.related('messages').create({ userId: userId, message: content })
+
+    if (tags && tags.length) {
+      const taggedUsers = await channel.related('users').query().whereIn('nickname', tags)
+
+      if (taggedUsers.length)
+        await message.related('tags').attach(taggedUsers.map((user) => user.id))
+    }
+
     await message.load('user')
+    await message.load('tags')
 
     return message.serialize() as SerializedMessage
   }

@@ -102,4 +102,10 @@ export default class User extends BaseModel {
     pivotTable: 'kicked_users',
   })
   public myKicks: ManyToMany<typeof Channel>
+
+  @manyToMany(() => Message, {
+    pivotTable: 'tags',
+    pivotTimestamps: true,
+  })
+  public tags: ManyToMany<typeof Message>
 }
