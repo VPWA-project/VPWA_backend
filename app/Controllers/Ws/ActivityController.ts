@@ -40,7 +40,7 @@ export default class ActivityController {
     const dndUsers = await User.findMany([...dndIds])
 
     socket.emit('user:list', onlineUsers, dndUsers)
-    socket.emit('user:online', auth.user)
+    //socket.emit('user:online', auth.user)
 
     logger.info('new websocket connection')
   }

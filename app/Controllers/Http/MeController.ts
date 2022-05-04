@@ -20,19 +20,14 @@ export default class MeController {
 
   public async update({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
-      status: schema.enum.optional(Object.values(UserStatus)),
       onlyNotifications: schema.boolean.optional(),
     })
 
     const data = await request.validate({ schema: validationSchema })
     const user = auth.user as User
 
-    if (data.status) {
-      user.status = data.status
-    }
-
-    if (data.onlyNotifications) {
-      user.onlyNotifications = data.onlyNotifications
+    if ('onlyNotifications' in data) {
+      user.onlyNotifications = data.onlyNotifications as boolean
     }
 
     await user.save()
