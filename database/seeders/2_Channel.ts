@@ -61,7 +61,7 @@ export default class ChannelSeeder extends BaseSeeder {
 
     if (adminsChannels && johnUser)
       adminsChannels?.forEach(async (channel) => {
-        Array.from({ length: 50 }).forEach(async () => {
+        Array.from({ length: 250 }).forEach(async () => {
           const startTime = new Date(2021, 4, 1)
           const endTime = new Date()
 
