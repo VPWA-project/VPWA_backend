@@ -117,7 +117,6 @@ export default class ChannelsController {
 
     socket.broadcast.emit('user:receiveKick', {
       userId: userToBeKicked.id,
-      channelName: channel.name,
     })
   }
 
