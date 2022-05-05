@@ -237,13 +237,14 @@ export default class ChannelsController {
 
     const query = User.query()
       .distinct('users.*')
-      .joinRaw('left join channel_user on users.id = channel_user.user_id')
       .where('users.id', '!=', user.id)
-      .andWhere((query) => {
-        query
-          .where('channel_user.channel_id', '!=', channel.id)
-          .orWhereNull('channel_user.channel_id')
-      })
+      .whereNotIn(
+        'users.id',
+        User.query()
+          .select('users.id')
+          .joinRaw('inner join channel_user on users.id = channel_user.user_id')
+          .where('channel_user.channel_id', '=', channel.id)
+      )
       .andWhereNotIn(
         'users.id',
         User.query()
@@ -254,7 +255,7 @@ export default class ChannelsController {
 
     if (data.search) {
       query
-        .where('nickname', 'ILIKE', data.search + '%') // startswith
+        .andWhere('nickname', 'ILIKE', data.search + '%') // startswith
         .orderBy('nickname', 'asc')
     }
 
