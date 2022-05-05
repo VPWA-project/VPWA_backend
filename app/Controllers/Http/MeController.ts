@@ -1,7 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { schema } from '@ioc:Adonis/Core/Validator'
 import User from 'App/Models/User'
-import { UserStatus } from 'App/types/types'
 
 export default class MeController {
   public async index({ auth, response }: HttpContextContract) {

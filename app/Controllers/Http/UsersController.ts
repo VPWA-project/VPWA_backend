@@ -16,7 +16,15 @@ export default class UsersController {
         expiresIn: '1day',
       })
     } catch {
-      return response.badRequest('Invalid credentials')
+      return response.unauthorized({
+        errors: [
+          {
+            field: 'email',
+            rule: 'invalid credentials',
+            message: 'E-mail or password is incorrect',
+          },
+        ],
+      })
     }
   }
 
@@ -31,14 +39,23 @@ export default class UsersController {
         rules.unique({ table: 'users', column: 'email' }),
       ]),
       password: schema.string({}, [rules.minLength(8), rules.confirmed()]),
-      firstname: schema.string({ trim: true }),
-      lastname: schema.string({ trim: true }),
+      firstname: schema.string({ trim: true }, [rules.maxLength(15)]),
+      lastname: schema.string({ trim: true }, [rules.maxLength(15)]),
       nickname: schema.string({ trim: true }, [
         rules.unique({ table: 'users', column: 'nickname' }),
+        rules.minLength(3),
+        rules.maxLength(15),
       ]),
     })
 
-    const data = await request.validate({ schema: validationSchema })
+    const data = await request.validate({
+      schema: validationSchema,
+      messages: {
+        'email.unique': 'E-mail already used',
+        'confirmed': 'Passwords are not equal',
+        'nickname.unique': 'Nickname already used',
+      },
+    })
     const user = await User.create(data)
 
     const token = await auth.use('api').attempt(data.email, data.password, {
