@@ -23,8 +23,6 @@ export default class ChannelsController {
     let searchText = request.all()['searchText']
     let userId = request.all()['userId']
     const data = await request.validate({ schema: validationSchema })
-    // TODO: filter out banned channels and channels where user is already in
-    // TODO: allow search by name option - DONE
 
     let usersBannedChannels = await Database.rawQuery(
       'SELECT * FROM banned_users WHERE user_id=:id',

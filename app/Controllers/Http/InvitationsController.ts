@@ -110,16 +110,11 @@ export default class InvitationsController {
       return response.badRequest('Invitation does not belongs to you')
     }
 
-    //invitation.acceptedAt = DateTime.local()
-
-    //await invitation.save()
-
     if (data.status === InvitationStatus.Accept) {
       // add user to channel
       await user.related('channels').attach([invitation.channelId])
     }
 
-    // TODO: add resolve status to invitation schema or delete after
     await invitation.delete()
 
     return response.ok({})

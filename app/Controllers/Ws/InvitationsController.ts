@@ -46,9 +46,11 @@ export default class InvitationsController {
     }
 
     // delete ban if exist
-    ;(await user.related('bannedChannels').query())
-      .find((bannedChannel) => bannedChannel.id === channel?.id)
-      ?.delete()
+    const bannedChannel = (await invitedUser.related('bannedChannels').query()).find(
+      (c) => c.id === channel.id
+    )
+
+    if (bannedChannel) await invitedUser.related('bannedChannels').detach([bannedChannel.id])
 
     // check if invited user was already invited to given channel
     const previousInvitation = (await channel.related('invitations').query()).find(
