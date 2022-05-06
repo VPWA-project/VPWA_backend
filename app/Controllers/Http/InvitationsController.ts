@@ -113,26 +113,36 @@ export default class InvitationsController {
 
     const data = await request.validate({ schema: validationSchema })
 
-    const invitation = await Invitation.findOrFail(id)
+    const trx = await Database.transaction()
 
-    if (!invitation) {
-      return response.badRequest('Invitation not found')
+    try {
+      const invitation = await Invitation.findOrFail(id, { client: trx })
+
+      if (!invitation) {
+        return response.badRequest('Invitation not found')
+      }
+
+      const user = auth.user as User
+
+      if (invitation.userId !== user.id) {
+        return response.badRequest('Invitation does not belongs to you')
+      }
+
+      if (data.status === InvitationStatus.Accept) {
+        // add user to channel
+        await user.related('channels').attach([invitation.channelId], trx)
+      }
+
+      await invitation.delete()
+
+      await trx.commit()
+
+      return response.ok({})
+    } catch (err) {
+      await trx.rollback()
+
+      return response.abort(err)
     }
-
-    const user = auth.user as User
-
-    if (invitation.userId !== user.id) {
-      return response.badRequest('Invitation does not belongs to you')
-    }
-
-    if (data.status === InvitationStatus.Accept) {
-      // add user to channel
-      await user.related('channels').attach([invitation.channelId])
-    }
-
-    await invitation.delete()
-
-    return response.ok({})
   }
 
   public async store({}: HttpContextContract) {}
