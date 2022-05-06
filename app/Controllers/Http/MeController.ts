@@ -9,14 +9,6 @@ export default class MeController {
     return response.ok(user)
   }
 
-  public async create({}: HttpContextContract) {}
-
-  public async store({}: HttpContextContract) {}
-
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
-
   public async update({ auth, request, response }: HttpContextContract) {
     const validationSchema = schema.create({
       onlyNotifications: schema.boolean.optional(),
