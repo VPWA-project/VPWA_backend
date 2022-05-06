@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import Database from '@ioc:Adonis/Lucid/Database'
 import Channel from 'App/Models/Channel'
 import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
@@ -66,26 +67,40 @@ export default class InvitationsController {
       return response.badRequest('User is already in the channel')
     }
 
-    // delete ban if exist
-    ;(await user.related('bannedChannels').query())
-      .find((bannedChannel) => bannedChannel.id === channel?.id)
-      ?.delete()
+    const trx = await Database.transaction()
 
-    // check if invited user was already invited to given channel
-    const previousInvitation = (await channel.related('invitations').query()).find(
-      (invitation) => invitation.userId === data.userId
-    )
+    try {
+      // delete ban if exist
+      const bannedChannel = (await user.related('bannedChannels').query()).find(
+        (c) => c.id === channel.id
+      )
 
-    if (previousInvitation) {
-      return response.badRequest('User was already invited')
+      if (bannedChannel) await user.related('bannedChannels').detach([bannedChannel.id], trx)
+
+      // check if invited user was already invited to given channel
+      const previousInvitation = (await channel.related('invitations').query()).find(
+        (invitation) => invitation.userId === data.userId
+      )
+
+      if (previousInvitation) {
+        return response.badRequest('User was already invited')
+      }
+
+      const invitation = await Invitation.create(
+        {
+          ...data,
+          invitedById: user.id,
+        },
+        { client: trx }
+      )
+
+      await trx.commit()
+
+      return response.created(invitation)
+    } catch (err) {
+      await trx.rollback()
+      return response.abort(err)
     }
-
-    const invitation = await Invitation.create({
-      ...data,
-      invitedById: user.id,
-    })
-
-    return response.created(invitation)
   }
 
   /**

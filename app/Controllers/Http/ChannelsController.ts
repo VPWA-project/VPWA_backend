@@ -129,6 +129,7 @@ export default class ChannelsController {
       return response.created(channel)
     } catch (err) {
       await trx.rollback()
+      return response.abort(err)
     }
   }
 
