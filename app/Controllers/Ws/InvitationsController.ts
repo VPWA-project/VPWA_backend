@@ -1,3 +1,4 @@
+import Database from '@ioc:Adonis/Lucid/Database'
 import { WsContextContract } from '@ioc:Ruby184/Socket.IO/WsContext'
 import Channel from 'App/Models/Channel'
 import Invitation from 'App/Models/Invitation'
@@ -50,25 +51,37 @@ export default class InvitationsController {
       (c) => c.id === channel.id
     )
 
-    if (bannedChannel) await invitedUser.related('bannedChannels').detach([bannedChannel.id])
+    const trx = await Database.transaction()
 
-    // check if invited user was already invited to given channel
-    const previousInvitation = (await channel.related('invitations').query()).find(
-      (invitation) => invitation.userId === invitedUser.id
-    )
+    try {
+      if (bannedChannel) await invitedUser.related('bannedChannels').detach([bannedChannel.id], trx)
 
-    if (previousInvitation) {
-      throw new Error('User was already invited')
+      // check if invited user was already invited to given channel
+      const previousInvitation = (await channel.related('invitations').query()).find(
+        (invitation) => invitation.userId === invitedUser.id
+      )
+
+      if (previousInvitation) {
+        throw new Error('User was already invited')
+      }
+
+      const invitation = await Invitation.create(
+        {
+          channelId: channel.id,
+          userId: invitedUser.id,
+          invitedById: user.id,
+        },
+        { client: trx }
+      )
+
+      await trx.commit()
+
+      const userRoom = getUserRoom(invitedUser)
+
+      socket.to(userRoom).emit('invitation:receive', { ...invitation, invitedBy: user, channel })
+    } catch (err) {
+      await trx.rollback()
+      return err
     }
-
-    const invitation = await Invitation.create({
-      channelId: channel.id,
-      userId: invitedUser.id,
-      invitedById: user.id,
-    })
-
-    const userRoom = getUserRoom(invitedUser)
-
-    socket.to(userRoom).emit('invitation:receive', { ...invitation, invitedBy: user, channel })
   }
 }

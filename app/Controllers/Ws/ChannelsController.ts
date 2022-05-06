@@ -26,8 +26,6 @@ export default class ChannelsController {
     { auth, socket, params: { name } }: WsContextContract,
     data: { method: KickType; userId: string }
   ) {
-    // TODO: add to migration
-
     const user = auth.user as User
 
     // check if user wants to kick himself
@@ -71,53 +69,62 @@ export default class ChannelsController {
       throw new Error('User is not channel member')
     }
 
-    if (data.method === KickType.Kick) {
-      const numberOfKicks = (
-        await channel.related('kickedUsers').query().where('kicked_user_id', userToBeKicked.id)
-      ).length
+    const trx = await Database.transaction()
 
-      if (isKickerAdmin) {
-        // ban
-        await userToBeKicked.related('bannedChannels').attach([channel.id])
+    try {
+      if (data.method === KickType.Kick) {
+        const numberOfKicks = (
+          await channel.related('kickedUsers').query().where('kicked_user_id', userToBeKicked.id)
+        ).length
 
-        // remove kicks
-        await channel.related('kickedUsers').detach([userToBeKicked.id])
-      } else {
-        // check if the user has already kicked the user before
-        const wasUserKickedByKickerBefore = !!(await channel
-          .related('kickedUsers')
-          .query()
-          .where('kicked_user_id', userToBeKicked.id)
-          .where('kicked_by_user_id', user.id)
-          .first())
-
-        if (!wasUserKickedByKickerBefore) {
-          // kick
-          await Database.table('kicked_users').insert({
-            kicked_user_id: userToBeKicked.id,
-            kicked_by_user_id: user.id,
-            channel_id: channel.id,
-          })
-        } else {
-          throw new Error('You have already kicked the user')
-        }
-
-        // 3x kick = ban
-        if (numberOfKicks + 1 >= 3) {
+        if (isKickerAdmin) {
           // ban
-          await userToBeKicked.related('bannedChannels').attach([channel.id])
+          await userToBeKicked.related('bannedChannels').attach([channel.id], trx)
+
           // remove kicks
-          await channel.related('kickedUsers').detach([userToBeKicked.id])
+          await channel.related('kickedUsers').detach([userToBeKicked.id], trx)
+        } else {
+          // check if the user has already kicked the user before
+          const wasUserKickedByKickerBefore = !!(await channel
+            .related('kickedUsers')
+            .query()
+            .where('kicked_user_id', userToBeKicked.id)
+            .where('kicked_by_user_id', user.id)
+            .first())
+
+          if (!wasUserKickedByKickerBefore) {
+            // kick
+            await trx.table('kicked_users').insert({
+              kicked_user_id: userToBeKicked.id,
+              kicked_by_user_id: user.id,
+              channel_id: channel.id,
+            })
+          } else {
+            throw new Error('You have already kicked the user')
+          }
+
+          // 3x kick = ban
+          if (numberOfKicks + 1 >= 3) {
+            // ban
+            await userToBeKicked.related('bannedChannels').attach([channel.id], trx)
+            // remove kicks
+            await channel.related('kickedUsers').detach([userToBeKicked.id], trx)
+          }
         }
       }
+
+      // remove channel
+      await userToBeKicked.related('channels').detach([channel.id], trx)
+
+      await trx.commit()
+
+      socket.broadcast.emit('user:receiveKick', {
+        userId: userToBeKicked.id,
+      })
+    } catch (err) {
+      await trx.rollback()
+      return err
     }
-
-    // remove channel
-    await userToBeKicked.related('channels').detach([channel.id])
-
-    socket.broadcast.emit('user:receiveKick', {
-      userId: userToBeKicked.id,
-    })
   }
 
   /**

@@ -1,3 +1,4 @@
+import Database from '@ioc:Adonis/Lucid/Database'
 import type {
   MessagesRepositoryContract,
   PaginatedResponse,
@@ -33,19 +34,32 @@ export default class MessagesRepository implements MessagesRepositoryContract {
     content: string,
     tags?: string[]
   ): Promise<SerializedMessage> {
-    const channel = await Channel.query().where('name', id).firstOrFail()
-    const message = await channel.related('messages').create({ userId: userId, message: content })
+    const trx = await Database.transaction()
 
-    if (tags && tags.length) {
-      const taggedUsers = await channel.related('users').query().whereIn('nickname', tags)
+    try {
+      const channel = await Channel.query({ client: trx }).where('name', id).firstOrFail()
 
-      if (taggedUsers.length)
-        await message.related('tags').attach(taggedUsers.map((user) => user.id))
+      const message = await channel.related('messages').create({ userId: userId, message: content })
+
+      if (tags && tags.length) {
+        const taggedUsers = await channel.related('users').query().whereIn('nickname', tags)
+
+        if (taggedUsers.length)
+          await message.related('tags').attach(
+            taggedUsers.map((user) => user.id),
+            trx
+          )
+      }
+
+      await trx.commit()
+
+      await message.load('user')
+      await message.load('tags')
+
+      return message.serialize() as SerializedMessage
+    } catch (err) {
+      await trx.rollback()
+      return err
     }
-
-    await message.load('user')
-    await message.load('tags')
-
-    return message.serialize() as SerializedMessage
   }
 }

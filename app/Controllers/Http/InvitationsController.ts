@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import Database from '@ioc:Adonis/Lucid/Database'
 import Channel from 'App/Models/Channel'
 import Invitation from 'App/Models/Invitation'
 import User from 'App/Models/User'
@@ -66,26 +67,40 @@ export default class InvitationsController {
       return response.badRequest('User is already in the channel')
     }
 
-    // delete ban if exist
-    ;(await user.related('bannedChannels').query())
-      .find((bannedChannel) => bannedChannel.id === channel?.id)
-      ?.delete()
+    const trx = await Database.transaction()
 
-    // check if invited user was already invited to given channel
-    const previousInvitation = (await channel.related('invitations').query()).find(
-      (invitation) => invitation.userId === data.userId
-    )
+    try {
+      // delete ban if exist
+      const bannedChannel = (await user.related('bannedChannels').query()).find(
+        (c) => c.id === channel.id
+      )
 
-    if (previousInvitation) {
-      return response.badRequest('User was already invited')
+      if (bannedChannel) await user.related('bannedChannels').detach([bannedChannel.id], trx)
+
+      // check if invited user was already invited to given channel
+      const previousInvitation = (await channel.related('invitations').query()).find(
+        (invitation) => invitation.userId === data.userId
+      )
+
+      if (previousInvitation) {
+        return response.badRequest('User was already invited')
+      }
+
+      const invitation = await Invitation.create(
+        {
+          ...data,
+          invitedById: user.id,
+        },
+        { client: trx }
+      )
+
+      await trx.commit()
+
+      return response.created(invitation)
+    } catch (err) {
+      await trx.rollback()
+      return response.abort(err)
     }
-
-    const invitation = await Invitation.create({
-      ...data,
-      invitedById: user.id,
-    })
-
-    return response.created(invitation)
   }
 
   /**
@@ -98,35 +113,37 @@ export default class InvitationsController {
 
     const data = await request.validate({ schema: validationSchema })
 
-    const invitation = await Invitation.findOrFail(id)
+    const trx = await Database.transaction()
 
-    if (!invitation) {
-      return response.badRequest('Invitation not found')
+    try {
+      const invitation = await Invitation.findOrFail(id, { client: trx })
+
+      if (!invitation) {
+        return response.badRequest('Invitation not found')
+      }
+
+      const user = auth.user as User
+
+      if (invitation.userId !== user.id) {
+        return response.badRequest('Invitation does not belongs to you')
+      }
+
+      if (data.status === InvitationStatus.Accept) {
+        // add user to channel
+        await user.related('channels').attach([invitation.channelId], trx)
+      }
+
+      await invitation.delete()
+
+      await trx.commit()
+
+      return response.ok({})
+    } catch (err) {
+      await trx.rollback()
+
+      return response.abort(err)
     }
-
-    const user = auth.user as User
-
-    if (invitation.userId !== user.id) {
-      return response.badRequest('Invitation does not belongs to you')
-    }
-
-    if (data.status === InvitationStatus.Accept) {
-      // add user to channel
-      await user.related('channels').attach([invitation.channelId])
-    }
-
-    await invitation.delete()
-
-    return response.ok({})
   }
-
-  public async store({}: HttpContextContract) {}
-
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
 
   /**
    * Deletes invitation

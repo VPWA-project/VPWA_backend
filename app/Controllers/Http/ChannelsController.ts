@@ -97,27 +97,40 @@ export default class ChannelsController {
       })
     }
 
-    // TODO: transaction
+    const trx = await Database.transaction()
 
-    const channel = await Channel.create({
-      ...({ name: data.name, type: data.type } as Channel),
-      administratorId: auth.user?.id as string,
-    })
+    try {
+      const channel = await Channel.create(
+        {
+          ...({ name: data.name, type: data.type } as Channel),
+          administratorId: auth.user?.id as string,
+        },
+        { client: trx }
+      )
 
-    // join administrator in the channel
-    await user.related('channels').attach([channel.id])
+      // join administrator in the channel
+      await user.related('channels').attach([channel.id], trx)
 
-    data.invitations?.forEach((userId) => {
-      Invitation.create({
-        userId: userId,
-        invitedById: user.id,
-        channelId: channel.id,
+      data.invitations?.forEach((userId) => {
+        Invitation.create(
+          {
+            userId: userId,
+            invitedById: user.id,
+            channelId: channel.id,
+          },
+          { client: trx }
+        )
       })
-    })
 
-    await channel.load('administrator')
+      await trx.commit()
 
-    return response.created(channel)
+      await channel.load('administrator')
+
+      return response.created(channel)
+    } catch (err) {
+      await trx.rollback()
+      return response.abort(err)
+    }
   }
 
   /**
@@ -186,7 +199,6 @@ export default class ChannelsController {
     // check if the user is admin of the channel
     if (channel.administratorId === user.id) {
       // delete the channel
-      // TODO: soft delete
       await channel.delete()
 
       return response.noContent()
@@ -264,14 +276,6 @@ export default class ChannelsController {
     return response.ok(users)
   }
 
-  public async store({}: HttpContextContract) {}
-
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
-
   public async destroy({ auth, response, params: { id } }: HttpContextContract) {
     const channel = await Channel.findOrFail(id)
 
@@ -282,8 +286,6 @@ export default class ChannelsController {
     if (channel.administratorId !== auth.user?.id) {
       return response.badRequest('Permission denied')
     }
-
-    // TODO: soft delete
 
     await channel.delete()
 

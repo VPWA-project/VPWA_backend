@@ -41,8 +41,6 @@ export default class MessagesController {
     return message
   }
 
-  public async index({}: HttpContextContract) {}
-
   /**
    * Creates a new message
    */
@@ -79,14 +77,4 @@ export default class MessagesController {
 
     return response.ok(message)
   }
-
-  public async store({}: HttpContextContract) {}
-
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
-
-  public async destroy({}: HttpContextContract) {}
 }
