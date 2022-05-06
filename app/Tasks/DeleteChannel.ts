@@ -4,7 +4,7 @@ import { DateTime } from 'luxon'
 
 export default class DeleteChannel extends BaseTask {
   public static get schedule() {
-    return '* * * * *' // runs every day at 00:00
+    return '0 0 * * *' // runs every day at 00:00
   }
   /**
    * Set enable use .lock file for block run retry task
