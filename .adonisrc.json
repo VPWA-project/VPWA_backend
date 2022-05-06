@@ -4,7 +4,8 @@
     "./commands",
     "@adonisjs/core/build/commands/index.js",
     "@adonisjs/repl/build/commands",
-    "@adonisjs/lucid/build/commands"
+    "@adonisjs/lucid/build/commands",
+    "adonis5-scheduler/build/commands"
   ],
   "exceptionHandlerNamespace": "App/Exceptions/Handler",
   "aliases": {
@@ -32,14 +33,22 @@
       ],
       "optional": true
     },
-    "./start/orm"
+    "./start/orm",
+    {
+      "file": "./start/CronScheduler",
+      "environment": [
+        "web",
+        "test"
+      ]
+    }
   ],
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
     "@adonisjs/lucid",
     "@adonisjs/auth",
-    "@ruby184/adonis-socket.io"
+    "@ruby184/adonis-socket.io",
+    "adonis5-scheduler"
   ],
   "aceProviders": [
     "@adonisjs/repl"

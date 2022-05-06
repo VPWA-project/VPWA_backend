@@ -30,7 +30,8 @@
       "@adonisjs/repl",
       "@adonisjs/lucid",
       "@adonisjs/auth",
-      "@ruby184/adonis-socket.io"
+      "@ruby184/adonis-socket.io",
+      "adonis5-scheduler"
     ]
   }
 }
