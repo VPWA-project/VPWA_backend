@@ -145,14 +145,6 @@ export default class InvitationsController {
     }
   }
 
-  public async store({}: HttpContextContract) {}
-
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
-
   /**
    * Deletes invitation
    */
