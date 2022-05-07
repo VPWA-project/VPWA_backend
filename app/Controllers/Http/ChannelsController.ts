@@ -83,8 +83,6 @@ export default class ChannelsController {
     // check if channel with given name already exist
     const existingChannel = await Channel.query().where('name', data.name).first()
 
-    // TODO: if last message was 30 days ago, mark channel as deleted and create channel with the same name
-
     if (existingChannel) {
       return response.status(422).json({
         errors: [
@@ -175,12 +173,27 @@ export default class ChannelsController {
       }
     }
 
-    // join channel
-    await user.related('channels').attach([channel.id])
+    const trx = await Database.transaction()
 
-    await channel.load('administrator')
+    try {
+      // delete all invitations
+      ;(await user.related('receivedInvitations').query())
+        .find((invitation) => invitation.channelId === channel.id)
+        ?.useTransaction(trx)
+        .delete()
 
-    return response.ok(channel)
+      // join channel
+      await user.related('channels').attach([channel.id], trx)
+
+      await trx.commit()
+
+      await channel.load('administrator')
+
+      return response.ok(channel)
+    } catch (err) {
+      await trx.rollback()
+      return response.badRequest(err)
+    }
   }
 
   /**
