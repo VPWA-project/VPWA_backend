@@ -147,13 +147,13 @@ export default class ChannelsController {
 
       // TODO: disconnect all sockets
 
-      socket.broadcast.emit('channel:delete', channel)
+      socket.broadcast.emit('channel:delete')
     } else {
       // leave the channel
       await user.related('channels').detach([channel.id])
     }
 
-    socket.nsp.emit('channel:leave', { user, channel })
+    socket.nsp.emit('channel:leave', { user })
 
     // disconnect all user's sockets
     const userRoom = getUserRoom(user)
