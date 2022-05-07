@@ -1,7 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database'
 import type {
   MessagesRepositoryContract,
-  PaginatedResponse,
   SerializedMessage,
 } from '@ioc:Repositories/MessagesRepository'
 import Channel from 'App/Models/Channel'
@@ -10,22 +9,22 @@ import Message from 'App/Models/Message'
 export default class MessagesRepository implements MessagesRepositoryContract {
   public async getMessages(
     name: string,
-    page?: number,
+    beforeId?: number,
     limit?: number
-  ): Promise<PaginatedResponse<SerializedMessage[]>> {
+  ): Promise<SerializedMessage[]> {
     const channel = await Channel.query().where('name', name).firstOrFail()
 
-    const messages = await Message.query()
-      .where('channel_id', channel.id)
+    const messagesQuery = Message.query().where('channel_id', channel.id)
+
+    if (beforeId) messagesQuery.where('id', '<', beforeId)
+
+    const messages = await messagesQuery
       .preload('user')
       .preload('tags')
-      .orderBy('created_at', 'desc')
-      .paginate(page || 1, limit || 10)
+      .orderBy('id', 'desc')
+      .limit(limit || 10)
 
-    return {
-      meta: messages.getMeta(),
-      data: messages.all().map((message) => message.serialize() as SerializedMessage),
-    }
+    return messages.map((message) => message.serialize() as SerializedMessage)
   }
 
   public async create(
