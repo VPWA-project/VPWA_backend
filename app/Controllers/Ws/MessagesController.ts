@@ -1,6 +1,7 @@
 import { inject } from '@adonisjs/core/build/standalone'
 import { MessagesRepositoryContract } from '@ioc:Repositories/MessagesRepository'
 import { WsContextContract } from '@ioc:Ruby184/Socket.IO/WsContext'
+import { getUserRoom } from './ActivityController'
 
 @inject(['Repositories/MessagesRepository'])
 export default class MessagesController {
@@ -34,11 +35,14 @@ export default class MessagesController {
   ) {
     const user = auth.user!
 
-    socket.broadcast.emit('channel:receiveTyping', {
+    const userRoom = getUserRoom(user)
+
+    socket.broadcast.except(userRoom).emit('channel:receiveTyping', {
       content: message,
       author: user,
       channel: name,
     })
+
     return message
   }
 }
