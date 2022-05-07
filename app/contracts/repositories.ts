@@ -39,9 +39,10 @@ declare module '@ioc:Repositories/MessagesRepository' {
   export interface MessagesRepositoryContract {
     getMessages(
       id: string,
+      beforeId?: number,
       page?: number,
       limit?: number
-    ): Promise<PaginatedResponse<SerializedMessage[]>>
+    ): Promise<SerializedMessage[]>
     create(id: string, userId: string, content: string, tags?: string[]): Promise<SerializedMessage>
   }
 
