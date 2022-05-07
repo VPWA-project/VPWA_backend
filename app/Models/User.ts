@@ -41,9 +41,6 @@ export default class User extends BaseModel {
   @column()
   public status: UserStatus
 
-  @column()
-  public onlyNotifications: boolean
-
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

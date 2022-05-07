@@ -31,7 +31,6 @@ Route.group(() => {
   Route.group(() => {
     Route.post('logout', 'UsersController.logout')
     Route.get('me', 'MeController.index')
-    Route.put('me', 'MeController.update')
     Route.get('me/channels', 'MeController.getChannels')
     Route.get('me/invitations', 'MeController.getInvitations')
   }).middleware('auth')

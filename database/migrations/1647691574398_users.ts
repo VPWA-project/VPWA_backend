@@ -11,7 +11,6 @@ export default class UsersSchema extends BaseSchema {
       table.string('firstname', 255).notNullable()
       table.string('lastname', 255).notNullable()
       table.string('nickname', 255).notNullable().unique()
-      table.boolean('only_notifications').defaultTo(false)
 
       /**
        * Uses timestampz for PostgreSQL and DATETIME2 for MSSQL
