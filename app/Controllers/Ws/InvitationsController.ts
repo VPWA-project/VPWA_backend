@@ -81,7 +81,7 @@ export default class InvitationsController {
       socket.to(userRoom).emit('invitation:receive', { ...invitation, invitedBy: user, channel })
     } catch (err) {
       await trx.rollback()
-      return err
+      throw err
     }
   }
 }

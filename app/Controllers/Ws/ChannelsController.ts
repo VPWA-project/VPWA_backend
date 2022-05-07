@@ -121,9 +121,11 @@ export default class ChannelsController {
       socket.broadcast.emit('user:receiveKick', {
         userId: userToBeKicked.id,
       })
+
+      return true
     } catch (err) {
       await trx.rollback()
-      return err
+      throw err
     }
   }
 
