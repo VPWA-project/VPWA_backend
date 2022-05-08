@@ -76,6 +76,8 @@ export default class InvitationsController {
 
       await trx.commit()
 
+      await invitation.load('channel')
+
       const userRoom = getUserRoom(invitedUser)
 
       socket.to(userRoom).emit('invitation:receive', { ...invitation, invitedBy: user, channel })
