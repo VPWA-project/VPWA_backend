@@ -44,13 +44,10 @@ Route.group(() => {
   Route.get('channels/:id/users', 'ChannelsController.users')
   Route.get('channels/:id/invitableUsers', 'ChannelsController.invitableUsers')
   Route.post('channels/:id/join', 'ChannelsController.join')
-  Route.post('channels/:id/leave', 'ChannelsController.leave')
-  Route.post('channels/:id/kick', 'ChannelsController.kick')
   Route.get('channels/:name', 'ChannelsController.getChannel')
   Route.delete('channels/:id', 'ChannelsController.destroy')
 
   Route.get('invitations', 'InvitationsController.index')
-  Route.post('invitations', 'InvitationsController.createInvitation')
   Route.post('invitations/:id', 'InvitationsController.resolve')
   Route.delete('invitations/:id', 'InvitationsController.destroy')
 }).middleware('auth')

@@ -197,33 +197,6 @@ export default class ChannelsController {
   }
 
   /**
-   * Leaves a channel
-   */
-  public async leave({ auth, response, params: { id } }: HttpContextContract) {
-    const user = auth.user as User
-
-    // check if the user is in the channel
-    const channel = (await user.related('channels').query()).find((channel) => channel.id === id)
-
-    if (!channel) {
-      return response.badRequest('Channel does not exist or you are not member of the channel')
-    }
-
-    // check if the user is admin of the channel
-    if (channel.administratorId === user.id) {
-      // delete the channel
-      await channel.delete()
-
-      return response.noContent()
-    } else {
-      // leave the channel
-      await user.related('channels').detach([channel.id])
-    }
-
-    return response.ok({})
-  }
-
-  /**
    * Get channel users
    */
   public async users({ auth, params: { id }, response }: HttpContextContract) {

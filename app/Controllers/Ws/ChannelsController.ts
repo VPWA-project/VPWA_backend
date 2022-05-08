@@ -147,8 +147,6 @@ export default class ChannelsController {
       // delete the channel
       await channel.delete()
 
-      // TODO: disconnect all sockets
-
       socket.broadcast.emit('channel:delete')
     } else {
       // leave the channel
