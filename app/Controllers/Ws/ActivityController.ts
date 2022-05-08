@@ -27,19 +27,23 @@ export default class ActivityController {
     const allSockets = await socket.nsp.except(room).fetchSockets()
     const onlineIds = new Set<string>()
     const dndIds = new Set<string>()
+    const offlineIds = new Set<string>()
 
     for (const remoteSocket of allSockets) {
       if (remoteSocket.data.userStatus === UserStatus.Online) {
         onlineIds.add(remoteSocket.data.userId)
       } else if (remoteSocket.data.userStatus === UserStatus.DND) {
         dndIds.add(remoteSocket.data.userId)
+      } else if (remoteSocket.data.userStatus === UserStatus.OFFLINE) {
+        offlineIds.add(remoteSocket.data.userId)
       }
     }
 
     const onlineUsers = await User.findMany([...onlineIds])
     const dndUsers = await User.findMany([...dndIds])
+    const offlineUsers = await User.findMany([...offlineIds])
 
-    socket.emit('user:list', onlineUsers, dndUsers)
+    socket.emit('user:list', onlineUsers, dndUsers, offlineUsers)
     //socket.emit('user:online', auth.user)
 
     logger.info('new websocket connection')
