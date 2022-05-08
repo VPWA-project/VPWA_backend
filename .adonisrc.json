@@ -4,7 +4,8 @@
     "./commands",
     "@adonisjs/core/build/commands/index.js",
     "@adonisjs/repl/build/commands",
-    "@adonisjs/lucid/build/commands"
+    "@adonisjs/lucid/build/commands",
+    "adonis5-scheduler/build/commands"
   ],
   "exceptionHandlerNamespace": "App/Exceptions/Handler",
   "aliases": {
@@ -15,12 +16,39 @@
   },
   "preloads": [
     "./start/routes",
-    "./start/kernel"
+    "./start/kernel",
+    {
+      "file": "./start/wsKernel",
+      "environment": [
+        "web",
+        "test"
+      ],
+      "optional": true
+    },
+    {
+      "file": "./start/socket",
+      "environment": [
+        "web",
+        "test"
+      ],
+      "optional": true
+    },
+    "./start/orm",
+    {
+      "file": "./start/CronScheduler",
+      "environment": [
+        "web",
+        "test"
+      ]
+    }
   ],
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
-    "@adonisjs/lucid"
+    "@adonisjs/lucid",
+    "@adonisjs/auth",
+    "@ruby184/adonis-socket.io",
+    "adonis5-scheduler"
   ],
   "aceProviders": [
     "@adonisjs/repl"
