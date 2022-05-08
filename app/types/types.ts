@@ -3,3 +3,8 @@ export enum UserStatus {
   DND = 'DND',
   OFFLINE = 'OFFLINE',
 }
+
+export enum InvitationStatus {
+  Accept = 'ACCEPT',
+  Decline = 'DECLINE',
+}

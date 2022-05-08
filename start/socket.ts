@@ -17,6 +17,7 @@ Ws.namespace('/')
 Ws.namespace('invitations')
   .connected('InvitationsController.onConnected')
   .on('invitation:create', 'InvitationsController.createInvitation')
+  .on('invitation:resolve', 'InvitationsController.resolve')
 
 // this is dynamic namespace, in controller methods we can use params.name
 Ws.namespace('channels/:name')

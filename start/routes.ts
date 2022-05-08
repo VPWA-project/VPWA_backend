@@ -48,7 +48,6 @@ Route.group(() => {
   Route.delete('channels/:id', 'ChannelsController.destroy')
 
   Route.get('invitations', 'InvitationsController.index')
-  Route.post('invitations/:id', 'InvitationsController.resolve')
   Route.delete('invitations/:id', 'InvitationsController.destroy')
 }).middleware('auth')
 
