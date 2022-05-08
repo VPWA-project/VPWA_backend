@@ -8,8 +8,9 @@ export default class Tags extends BaseSchema {
       table.increments('id')
       table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE')
       table.integer('message_id').references('id').inTable('messages').onDelete('CASCADE')
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+
+      table.timestamp('created_at', { useTz: true }).notNullable().defaultTo('now')
+      table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo('now')
     })
   }
 

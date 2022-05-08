@@ -10,7 +10,7 @@ export default class KickedUsers extends BaseSchema {
       table.uuid('kicked_by_user_id').references('id').inTable('users').onDelete('CASCADE')
       table.uuid('channel_id').references('id').inTable('channels').onDelete('CASCADE')
 
-      table.timestamp('created_at', { useTz: true }).notNullable()
+      table.timestamp('created_at', { useTz: true }).notNullable().defaultTo('now')
     })
   }
 

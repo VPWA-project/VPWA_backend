@@ -11,8 +11,8 @@ export default class Channels extends BaseSchema {
       table.string('name', 255).notNullable()
       table.enum('type', ['PUBLIC', 'PRIVATE']).defaultTo('PUBLIC')
 
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamp('created_at', { useTz: true }).notNullable().defaultTo('now')
+      table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo('now')
     })
   }
 

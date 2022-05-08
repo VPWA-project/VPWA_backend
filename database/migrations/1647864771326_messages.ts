@@ -10,8 +10,8 @@ export default class Messages extends BaseSchema {
       table.uuid('channel_id').references('id').inTable('channels').onDelete('CASCADE')
       table.text('message').notNullable()
 
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamp('created_at', { useTz: true }).notNullable().defaultTo('now')
+      table.timestamp('updated_at', { useTz: true }).notNullable().defaultTo('now')
     })
   }
 
