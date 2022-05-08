@@ -20,8 +20,8 @@ export default class Invitation extends BaseModel {
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: false })
-  public acceptedAt: DateTime
+  @column.dateTime({ autoCreate: true })
+  public updatedAt: DateTime
 
   @beforeCreate()
   public static async createUUID(invitation: Invitation) {

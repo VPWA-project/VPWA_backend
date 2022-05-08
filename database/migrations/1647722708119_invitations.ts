@@ -16,7 +16,7 @@ export default class Invitations extends BaseSchema {
         .index('channel_id')
 
       table.timestamp('created_at', { useTz: true })
-      table.timestamp('accepted_at', { useTz: true }).nullable()
+      table.timestamp('updated_at', { useTz: true })
     })
   }
 

@@ -92,7 +92,7 @@ export default class InvitationsController {
    * Accepts or declines invitation
    */
   public async resolve(
-    { auth, socket, logger }: WsContextContract,
+    { auth, socket }: WsContextContract,
     data: { id: string; status: InvitationStatus }
   ) {
     if (!Object.values(InvitationStatus).includes(data.status))

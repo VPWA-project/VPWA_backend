@@ -11,9 +11,7 @@ export default class InvitationsController {
 
     const invitations = await Invitation.query()
       .where('invited_by_id', user.id)
-      .whereNull('accepted_at')
       .orWhere('user_id', user.id)
-      .whereNull('accepted_at')
       .orderBy('created_at', 'desc')
 
     const sendedInvitations = invitations.filter((invitation) => invitation.invitedById === user.id)
