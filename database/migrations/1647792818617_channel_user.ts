@@ -9,7 +9,7 @@ export default class ChannelUser extends BaseSchema {
       table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE')
       table.uuid('channel_id').references('id').inTable('channels').onDelete('CASCADE')
 
-      table.timestamp('created_at', { useTz: true }).defaultTo('now')
+      table.timestamp('created_at', { useTz: true }).notNullable()
     })
   }
 

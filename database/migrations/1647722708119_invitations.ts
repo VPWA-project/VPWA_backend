@@ -15,8 +15,8 @@ export default class Invitations extends BaseSchema {
         .onDelete('CASCADE')
         .index('channel_id')
 
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
+      table.timestamp('created_at', { useTz: true }).notNullable()
+      table.timestamp('updated_at', { useTz: true }).notNullable()
     })
   }
 
